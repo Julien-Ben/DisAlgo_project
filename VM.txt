@@ -1,0 +1,11 @@
+You can download the VM will all the necessary build tools from here:
+https://drive.google.com/file/d/1ccK0O0JSyHnmB4tta_rz1KoDA2FiQAFD
+
+Note: You need to access Google Drive using your EPFL to be able to download the file.
+
+To use the VM, you need to install VirtualBox in your computer.
+The installation process is straight-forward. In case you encounter any problem, refer to this website (https://wikis.utexas.edu/display/MSBTech/Installing+OVA+files+using+VirtualBox).
+
+VM Credentials:
+ - Username: dcl
+ - Password: dcl
