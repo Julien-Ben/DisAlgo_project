@@ -27,27 +27,27 @@ public class Parser {
 
         int argsNum = args.length;
         if (argsNum != Constants.ARG_LIMIT_NO_CONFIG && argsNum != Constants.ARG_LIMIT_CONFIG) {
-            help();
+            help("argslength");
         }
 
         if (!idParser.populate(args[Constants.ID_KEY], args[Constants.ID_VALUE])) {
-            help();
+            help("idparser");
         }
 
         if (!hostsParser.populate(args[Constants.HOSTS_KEY], args[Constants.HOSTS_VALUE])) {
-            help();
+            help("hostparser1");
         }
 
         if (!hostsParser.inRange(idParser.getId())) {
-            help();
+            help("hostparser2");
         }
 
         if (!barrierParser.populate(args[Constants.BARRIER_KEY], args[Constants.BARRIER_VALUE])) {
-            help();
+            help("barrierparser");
         }
 
         if (!outputParser.populate(args[Constants.OUTPUT_KEY], args[Constants.OUTPUT_VALUE])) {
-            help();
+            help("outputparser");
         }
 
         if (argsNum == Constants.ARG_LIMIT_CONFIG) {
@@ -57,9 +57,14 @@ public class Parser {
         }
     }
 
-    private void help() {
+    private void help(String message) {
         System.err.println("Usage: --id ID --hosts HOSTS --barier NAME:PORT --output OUTPUT [config]");
+        System.out.println(message);
         System.exit(1);
+    }
+
+    private void help() {
+        help("");
     }
 
     public int myId() {
