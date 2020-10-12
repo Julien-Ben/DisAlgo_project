@@ -2,6 +2,7 @@ package cs451.processes;
 
 import cs451.BarrierParser;
 import cs451.Host;
+import cs451.links.FairLossLink;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -53,33 +54,22 @@ public class BasicProcess{
             myWriter.close();
             System.out.println("Successfully wrote to the file.");
         } catch (IOException e) {
-
-
+            System.out.println("An error occurred when writing file.");
+            e.printStackTrace();
         }
     }
 
     private void run() {
         barrier.waitOnBarrier();
-
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
-        byte[] buf_send;
-        buf_send = message.getBytes();
-        try {
-            DatagramSocket mySocket = new DatagramSocket(port);
-            DatagramPacket myPacket;
-            // Trying things with UDP
-            for (Host host: hosts) {
-                myPacket = new DatagramPacket(buf_send, buf_send.length, InetAddress.getByName(host.getIp()), host.getPort());
-                mySocket.send(myPacket);
-            }
-            byte[] buf_receive = new byte[256];
-            DatagramPacket packet_receive = new DatagramPacket(buf_receive, buf_receive.length);
-            while (true) {
-                mySocket.receive(packet_receive);
-                writeToFile(outputFile, id + " : " + new String(buf_receive, StandardCharsets.UTF_8));
-            }
-        } catch (Exception e) {
-            System.out.println("Something gone wrong  : "+e.getMessage());
+        FairLossLink myLink = new FairLossLink(port);
+        for (Host host: hosts) {
+            myLink.fairLossSend(message, host.getIp(), host.getPort());
         }
+        while (true) {
+            byte[] buf_receive = myLink.fairLossReceive();
+            writeToFile(outputFile, id + " : " + new String(buf_receive, StandardCharsets.UTF_8));
+        }
+
     }
 }

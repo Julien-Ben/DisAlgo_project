@@ -1,16 +1,16 @@
 package cs451.links;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.io.IOException;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * Implements FairLossLink with UDP.
  */
 public class FairLossLink {
-    private final byte[] sendBuffer;
-    private final byte[] receiveBuffer;
+    private byte[] sendBuffer;
+    private byte[] receiveBuffer;
     private DatagramSocket socket;
     private final int port;
 
@@ -26,4 +26,35 @@ public class FairLossLink {
             e.printStackTrace();
         }
     }
+
+    public void fairLossSend(String message, String destIp, int destPort) {
+        sendBuffer = Arrays.copyOf(message.getBytes(), BUFFER_SIZE);
+        DatagramPacket myPacket;
+        try {
+            myPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(destIp), destPort);
+            socket.send(myPacket);
+        } catch (UnknownHostException e){
+            System.out.println("Unresolvable IP address.");
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("An error occurred when sending packet.");
+            e.printStackTrace();
+        }
+
+    }
+
+    public byte[] fairLossReceive() {
+        DatagramPacket packet_receive = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+        while (true) {
+            try {
+                socket.receive(packet_receive);
+                return receiveBuffer;
+            } catch (IOException e) {
+                System.out.println("An error occurred when receiving packet.");
+                e.printStackTrace();
+            }
+
+        }
+    }
+
 }
