@@ -6,9 +6,6 @@ import cs451.links.FairLossLink;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -48,6 +45,7 @@ public class BasicProcess{
     //TODO : move into a FileHelper
     public void writeToFile(String filename, String message) {
         try {
+            //TODO : try with resource
             FileWriter myWriter = new FileWriter(filename, true);
             myWriter.write(message);
             myWriter.write(System.lineSeparator());
@@ -67,7 +65,7 @@ public class BasicProcess{
             myLink.fairLossSend(message, host.getIp(), host.getPort());
         }
         while (true) {
-            byte[] buf_receive = myLink.fairLossReceive();
+            byte[] buf_receive = myLink.fairLossDeliver();
             writeToFile(outputFile, id + " : " + new String(buf_receive, StandardCharsets.UTF_8));
         }
 
