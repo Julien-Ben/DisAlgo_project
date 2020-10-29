@@ -7,7 +7,7 @@ import java.util.Arrays;
 /**
  * Implements FairLossLink with UDP.
  */
-public class FairLossLink {
+public class FairLossLink implements Link{
     private byte[] sendBuffer;
     private byte[] receiveBuffer;
     private DatagramSocket socket;
@@ -26,7 +26,7 @@ public class FairLossLink {
         }
     }
 
-    public void fairLossSend(String message, String destIp, int destPort) {
+    public void send(String message, String destIp, int destPort) {
         sendBuffer = (Arrays.copyOf(message.getBytes(), BUFFER_SIZE));
         DatagramPacket myPacket;
         try {
@@ -42,7 +42,7 @@ public class FairLossLink {
 
     }
 
-    public byte[] fairLossDeliver() {
+    public byte[] deliver() {
         DatagramPacket packet_receive = new DatagramPacket(receiveBuffer, receiveBuffer.length);
         while (true) {
             try {

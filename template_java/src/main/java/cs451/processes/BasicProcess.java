@@ -63,10 +63,10 @@ public class BasicProcess{
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
         StubbornLink myLink = new StubbornLink(port);
         for (Host host: hosts) {
-            myLink.stubbornSend(message, host.getIp(), host.getPort());
+            myLink.send(message, host.getIp(), host.getPort());
         }
         while (true) {
-            byte[] buf_receive = myLink.stubbornDeliver();
+            byte[] buf_receive = myLink.deliver();
             writeToFile(outputFile, id + " : " + new String(buf_receive, StandardCharsets.UTF_8));
         }
 

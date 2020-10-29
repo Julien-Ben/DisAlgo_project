@@ -1,20 +1,20 @@
 package cs451.links;
 
-public class StubbornLink{
+public class StubbornLink implements Link{
     FairLossLink fairLossLink;
 
     public StubbornLink(int port) {
         fairLossLink = new FairLossLink(port);
     }
 
-    public void stubbornSend(String message, String destIp, int destPort) {
+    public void send(String message, String destIp, int destPort) {
         while(true) {
-            fairLossLink.fairLossSend(message, destIp, destPort);
+            fairLossLink.send(message, destIp, destPort);
         }
     }
 
-    public byte[] stubbornDeliver() {
-        return fairLossLink.fairLossDeliver();
+    public byte[] deliver() {
+        return fairLossLink.deliver();
     }
 
 }
