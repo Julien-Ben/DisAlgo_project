@@ -17,7 +17,7 @@ public class FairLossLink implements Link{
     private byte[] receiveBuffer;
     private DatagramSocket socket;
     private final int port;
-    private static final int BUFFER_SIZE = 1024;
+    private static final int BUFFER_SIZE = 2048;
     private static final int UDP_RECEIVE_TIMEOUT = 50;
 
     public FairLossLink(int port) {

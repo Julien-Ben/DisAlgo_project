@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
@@ -69,8 +70,10 @@ public class BasicProcess{
         StubbornLink myLink = new StubbornLink(port);
         Thread fairLossThread = new Thread(myLink);
         fairLossThread.start();
+        int beginId = ThreadLocalRandom.current().nextInt(0, 5000 + 1);
         for (Host destHost: hosts) {
-            myLink.send(new Message(0, message, myHost, destHost));
+            myLink.send(new Message(beginId, message, myHost, destHost));
+            beginId++;
         }
         while (true) {
             Optional<Message> received = myLink.deliver();
