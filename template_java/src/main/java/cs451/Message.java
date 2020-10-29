@@ -3,12 +3,12 @@ package cs451;
 import java.io.*;
 
 public class Message implements Serializable {
-    private int id;
+    private long id;
     private String content;
     private Host sender;
     private Host dest;
 
-    public Message(int id, String content, Host sender, Host dest) {
+    public Message(long id, String content, Host sender, Host dest) {
         this.id = id;
         this.content = content;
         this.sender = sender;
@@ -32,7 +32,7 @@ public class Message implements Serializable {
         }
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

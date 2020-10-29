@@ -6,13 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class StubbornLink implements Link, Runnable{
+public class PerfectLink implements Link, Runnable{
     FairLossLink fairLossLink;
-    Map<Integer, Message> buffer;
+    Map<Long, Message> buffer;
 
-    public StubbornLink(int port) {
+    public PerfectLink(int port) {
         fairLossLink = new FairLossLink(port);
-        buffer = new HashMap<Integer, Message>();
+        buffer = new HashMap<Long, Message>();
     }
 
     public void run() {
@@ -40,9 +40,9 @@ public class StubbornLink implements Link, Runnable{
                 fairLossLink.send(new Message(0, "ack"+message.getId(), message.getDest(), message.getSender()));
             } else if (message.getContent().startsWith("ack")) {
                 String stringId = message.getContent().substring(3);
-                int messageId = 0;
+                long messageId = 0;
                 try {
-                    messageId = Integer.parseInt(stringId);
+                    messageId = Long.parseLong(stringId);
                 } catch (NumberFormatException e) {
                     System.out.println("Impossible to parse the string into a message id");
                     e.printStackTrace();

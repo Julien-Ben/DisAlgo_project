@@ -1,9 +1,6 @@
 package cs451.links;
 
 import cs451.Message;
-
-import javax.swing.text.html.Option;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;

@@ -3,16 +3,12 @@ package cs451.processes;
 import cs451.BarrierParser;
 import cs451.Host;
 import cs451.Message;
-import cs451.links.FairLossLink;
-import cs451.links.Link;
-import cs451.links.StubbornLink;
+import cs451.links.PerfectLink;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
@@ -67,10 +63,10 @@ public class BasicProcess{
     private void run() {
         barrier.waitOnBarrier();
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
-        StubbornLink myLink = new StubbornLink(port);
+        PerfectLink myLink = new PerfectLink(port);
         Thread fairLossThread = new Thread(myLink);
         fairLossThread.start();
-        int beginId = ThreadLocalRandom.current().nextInt(0, 5000 + 1);
+        long beginId = pid*1000;
         for (Host destHost: hosts) {
             myLink.send(new Message(beginId, message, myHost, destHost));
             beginId++;
