@@ -2,13 +2,16 @@ package cs451.processes;
 
 import cs451.BarrierParser;
 import cs451.Host;
+import cs451.Message;
 import cs451.links.FairLossLink;
+import cs451.links.Link;
 import cs451.links.StubbornLink;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
@@ -22,9 +25,10 @@ public class BasicProcess{
     private final String barrierIp;
     private final int barrierPort;
     private final Long pid;
+    private final Host myHost;
     BarrierParser.Barrier barrier;
 
-    public BasicProcess(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid, String barrierIp, int barrierPort) {
+    public BasicProcess(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid, String barrierIp, int barrierPort, Host myHost) {
         this.hosts = hosts;
         this.id = id;
         this.outputFile = outputFile;
@@ -33,6 +37,7 @@ public class BasicProcess{
         this.pid = pid;
         this.barrierIp = barrierIp;
         this.barrierPort = barrierPort;
+        this.myHost = myHost;
 
         System.out.println("My PID is " + pid + ".");
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
@@ -62,13 +67,16 @@ public class BasicProcess{
         barrier.waitOnBarrier();
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
         StubbornLink myLink = new StubbornLink(port);
-        for (Host host: hosts) {
-            myLink.send(message, host.getIp(), host.getPort());
+        Thread fairLossThread = new Thread(myLink);
+        fairLossThread.start();
+        for (Host destHost: hosts) {
+            myLink.send(new Message(0, message, myHost, destHost));
         }
         while (true) {
-            byte[] buf_receive = myLink.deliver();
-            writeToFile(outputFile, id + " : " + new String(buf_receive, StandardCharsets.UTF_8));
+            Optional<Message> received = myLink.deliver();
+            if (received.isPresent()) {
+                writeToFile(outputFile, id + " : " + new String(received.get().getContent()));
+            }
         }
-
     }
 }

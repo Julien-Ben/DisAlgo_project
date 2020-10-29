@@ -1,8 +1,13 @@
 package cs451.links;
 
+import cs451.Message;
+
+import javax.swing.text.html.Option;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Implements FairLossLink with UDP.
@@ -12,7 +17,8 @@ public class FairLossLink implements Link{
     private byte[] receiveBuffer;
     private DatagramSocket socket;
     private final int port;
-    private static final int BUFFER_SIZE = 256;
+    private static final int BUFFER_SIZE = 1024;
+    private static final int UDP_RECEIVE_TIMEOUT = 50;
 
     public FairLossLink(int port) {
         this.sendBuffer = new byte[BUFFER_SIZE];
@@ -20,17 +26,22 @@ public class FairLossLink implements Link{
         this.port = port;
         try {
             this.socket = new DatagramSocket(port);
+            socket.setSoTimeout(UDP_RECEIVE_TIMEOUT);
         } catch (SocketException e) {
             System.out.println("An error occurred when creating socket.");
             e.printStackTrace();
         }
     }
 
-    public void send(String message, String destIp, int destPort) {
-        sendBuffer = (Arrays.copyOf(message.getBytes(), BUFFER_SIZE));
+    public void send(Message message) {
+        try {
+            sendBuffer = (Arrays.copyOf(message.serialize(), BUFFER_SIZE));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         DatagramPacket myPacket;
         try {
-            myPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(destIp), destPort);
+            myPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(message.getDest().getIp()), message.getDest().getPort());
             socket.send(myPacket);
         } catch (UnknownHostException e){
             System.out.println("Unresolvable IP address.");
@@ -38,22 +49,27 @@ public class FairLossLink implements Link{
         } catch (IOException e) {
             System.out.println("An error occurred when sending packet.");
             e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("An error occurred");
+            e.printStackTrace();
         }
-
     }
 
-    public byte[] deliver() {
+    public Optional<Message> deliver() {
         DatagramPacket packet_receive = new DatagramPacket(receiveBuffer, receiveBuffer.length);
-        while (true) {
-            try {
-                socket.receive(packet_receive);
-                return receiveBuffer;
-            } catch (IOException e) {
-                System.out.println("An error occurred when receiving packet.");
-                e.printStackTrace();
-            }
-
+        try {
+            socket.receive(packet_receive);
+            return Optional.of(Message.deserialize(receiveBuffer));
+        } catch (SocketTimeoutException e){
+            System.out.println("Timeout");
+            return Optional.empty();
+        } catch (IOException e) {
+            System.out.println("An error occurred when receiving packet.");
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
+        return Optional.empty();
     }
 
 }

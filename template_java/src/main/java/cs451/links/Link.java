@@ -1,7 +1,11 @@
 package cs451.links;
 
+import cs451.Message;
+
+import java.util.Optional;
+
 public interface Link {
-    void send(String message, String destIp, int destPort);
-    byte[] deliver();
+    void send(Message message);
+    Optional<Message> deliver();
 
 }
