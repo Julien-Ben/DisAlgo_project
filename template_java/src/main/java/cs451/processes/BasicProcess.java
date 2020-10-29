@@ -3,6 +3,7 @@ package cs451.processes;
 import cs451.BarrierParser;
 import cs451.Host;
 import cs451.links.FairLossLink;
+import cs451.links.StubbornLink;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -60,12 +61,12 @@ public class BasicProcess{
     private void run() {
         barrier.waitOnBarrier();
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
-        FairLossLink myLink = new FairLossLink(port);
+        StubbornLink myLink = new StubbornLink(port);
         for (Host host: hosts) {
-            myLink.fairLossSend(message, host.getIp(), host.getPort());
+            myLink.stubbornSend(message, host.getIp(), host.getPort());
         }
         while (true) {
-            byte[] buf_receive = myLink.fairLossDeliver();
+            byte[] buf_receive = myLink.stubbornDeliver();
             writeToFile(outputFile, id + " : " + new String(buf_receive, StandardCharsets.UTF_8));
         }
 

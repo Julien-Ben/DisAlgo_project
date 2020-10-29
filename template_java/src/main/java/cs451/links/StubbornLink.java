@@ -1,16 +1,9 @@
 package cs451.links;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-
-public class StubbornLink extends Link{
+public class StubbornLink{
     FairLossLink fairLossLink;
 
     public StubbornLink(int port) {
-        super(port);
         fairLossLink = new FairLossLink(port);
     }
 
