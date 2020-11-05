@@ -2,7 +2,7 @@ package cs451.processes;
 
 import cs451.BarrierParser;
 import cs451.Host;
-import cs451.Message;
+import cs451.messages.Message;
 import cs451.links.PerfectLink;
 
 import java.io.FileWriter;

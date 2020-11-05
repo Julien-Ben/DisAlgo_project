@@ -2,7 +2,7 @@ package cs451.processes;
 
 import cs451.BarrierParser;
 import cs451.Host;
-import cs451.Message;
+import cs451.messages.Message;
 import cs451.links.PerfectLink;
 
 import java.io.FileWriter;
@@ -25,7 +25,7 @@ public class ReliableBroadcast {
     private final Long pid;
     private final Host myHost;
     private List<Host> neighbourHosts;
-    private static final int DEFAULT_HALF_WINDOW_SIZE = 2;
+    private static final int DEFAULT_HALF_WINDOW_SIZE = 1;
     private Long messageId;
     PerfectLink myLink;
     BarrierParser.Barrier barrier;
@@ -43,7 +43,7 @@ public class ReliableBroadcast {
         this.myLink = new PerfectLink(port);
 
         this.neighbourHosts = new ArrayList<>();
-        updateNeighbours(DEFAULT_HALF_WINDOW_SIZE);
+        updateNeighbours(DEFAULT_HALF_WINDOW_SIZE); //hosts.size()/2 + 1
 
         System.out.println("My PID is " + pid + ".");
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
@@ -56,7 +56,7 @@ public class ReliableBroadcast {
 
     public void updateNeighbours(int halfWindowSize) {
         int myIndex = hosts.indexOf(myHost);
-        neighbourHosts = hosts.subList(Math.max(0, myIndex-halfWindowSize), Math.min(hosts.size(), myIndex+halfWindowSize));
+        neighbourHosts = new ArrayList<>(hosts.subList(Math.max(0, myIndex-halfWindowSize), Math.min(hosts.size(), myIndex+halfWindowSize+1)));
         neighbourHosts.remove(myHost);
         System.out.println("My neighbours are : ");
         for (Host neighb : neighbourHosts) {
@@ -92,7 +92,9 @@ public class ReliableBroadcast {
         while (true) {
             Optional<Message> received = myLink.deliver();
             if (received.isPresent()) {
-                
+                if (!received.get().isRelay()) {
+                    relayToNeighbours(received.get());
+                }
                 writeToFile(outputFile, id + " : " + received.get().getContent());
             }
         }
@@ -100,7 +102,7 @@ public class ReliableBroadcast {
 
     private void relayToNeighbours(Message m) {
         for (Host neighbour: neighbourHosts) {
-            myLink.send(new Message(m.getId(), m.getContent(), m.getSender(), neighbour));
+            myLink.send(new Message(m.getId(), m.getContent(), m.getSender(), neighbour, true));
         }
     }
 }

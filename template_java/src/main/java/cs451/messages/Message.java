@@ -1,4 +1,6 @@
-package cs451;
+package cs451.messages;
+
+import cs451.Host;
 
 import java.io.*;
 
@@ -7,12 +9,18 @@ public class Message implements Serializable {
     private String content;
     private Host sender;
     private Host dest;
+    private boolean isRelay;
 
-    public Message(long id, String content, Host sender, Host dest) {
+    public Message(long id, String content, Host sender, Host dest, boolean isRelay) {
         this.id = id;
         this.content = content;
         this.sender = sender;
         this.dest = dest;
+        this.isRelay = isRelay ;
+    }
+
+    public Message(long id, String content, Host sender, Host dest) {
+        this(id, content, sender, dest, false);
     }
 
     //StackOverflow https://stackoverflow.com/questions/3736058/java-object-to-byte-and-byte-to-object-converter-for-tokyo-cabinet/3736091
@@ -62,5 +70,13 @@ public class Message implements Serializable {
 
     public void setDest(Host dest) {
         this.dest = dest;
+    }
+
+    public boolean isRelay() {
+        return isRelay;
+    }
+
+    public void setRelay(boolean relay) {
+        isRelay = relay;
     }
 }

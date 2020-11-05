@@ -1,6 +1,6 @@
 package cs451.links;
 
-import cs451.Message;
+import cs451.messages.Message;
 
 import java.util.Optional;
 

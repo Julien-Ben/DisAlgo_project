@@ -1,6 +1,7 @@
 package cs451;
 
 import cs451.processes.BasicProcess;
+import cs451.processes.ReliableBroadcast;
 
 public class Main {
 
@@ -45,7 +46,8 @@ public class Main {
             System.out.println("Config: " + parser.config());
         }
 
-        BasicProcess process = new BasicProcess(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost);
+        //BasicProcess process = new BasicProcess(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost);
+        ReliableBroadcast process = new ReliableBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost);
 
     }
 }
