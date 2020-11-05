@@ -1,6 +1,7 @@
 package cs451.processes;
 
 import cs451.BarrierParser;
+import cs451.Coordinator;
 import cs451.Host;
 import cs451.messages.Message;
 import cs451.links.PerfectLink;
@@ -28,9 +29,9 @@ public class ReliableBroadcast {
     private static final int DEFAULT_HALF_WINDOW_SIZE = 1;
     private Long messageId;
     PerfectLink myLink;
-    BarrierParser.Barrier barrier;
+    Coordinator coordinator;
 
-    public ReliableBroadcast(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid, String barrierIp, int barrierPort, Host myHost) {
+    public ReliableBroadcast(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid, String barrierIp, int barrierPort, Host myHost, Coordinator coordinator) {
         this.hosts = hosts;
         this.id = id;
         this.outputFile = outputFile;
@@ -41,6 +42,7 @@ public class ReliableBroadcast {
         this.barrierPort = barrierPort;
         this.myHost = myHost;
         this.myLink = new PerfectLink(port);
+        this.coordinator = coordinator;
 
         this.neighbourHosts = new ArrayList<>();
         updateNeighbours(DEFAULT_HALF_WINDOW_SIZE); //hosts.size()/2 + 1
@@ -80,7 +82,7 @@ public class ReliableBroadcast {
     }
 
     private void run() {
-        barrier.waitOnBarrier();
+        coordinator.waitOnBarrier();
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
         Thread fairLossThread = new Thread(myLink);
         fairLossThread.start();
@@ -98,6 +100,7 @@ public class ReliableBroadcast {
                 writeToFile(outputFile, id + " : " + received.get().getContent());
             }
         }
+        coordinator.finishedBroadcasting();
     }
 
     private void relayToNeighbours(Message m) {

@@ -28,6 +28,8 @@ public class Main {
 
         initSignalHandlers();
 
+        Coordinator coordinator = new Coordinator(parser.myId(), parser.barrierIp(), parser.barrierPort(), parser.signalIp(), parser.signalPort());
+
         // example
         long pid = ProcessHandle.current().pid();
         System.out.println("List of hosts is:");
@@ -47,7 +49,7 @@ public class Main {
         }
 
         //BasicProcess process = new BasicProcess(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost);
-        ReliableBroadcast process = new ReliableBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost);
+        ReliableBroadcast process = new ReliableBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost, coordinator);
 
     }
 }
