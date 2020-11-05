@@ -9,12 +9,13 @@ do
 done
 
 #Launching barrier
-nohup ../barrier.py --processes $1 > ${logfolder}log.txt 2> ${logfolder}errors.txt < /dev/null &
+nohup ../barrier.py --host localhost --port 11000 --processes $1 > ${logfolder}log.txt 2> ${logfolder}errors.txt < /dev/null &
+nohup ../finishedSignal.py --host localhost --port 11999 --processes $1 > ${logfolder}log.txt 2> ${logfolder}errors.txt < /dev/null &
 
 for ((i=1;i<=$1;i++))
 do
 	#Launching the processes
-	nohup ./run.sh --id $i --hosts host --barrier localhost:11000 --output ${logfolder}out$i.txt > ${logfolder}log$i.txt 2> ${logfolder}errors$i.txt < /dev/null &
+	nohup ./run.sh --id $i --hosts host --barrier localhost:11000 --signal localhost:11999 --output ${logfolder}out$i.txt > ${logfolder}log$i.txt 2> ${logfolder}errors$i.txt < /dev/null &
 	PID=$!
 	echo $PID >> pid.txt
 done

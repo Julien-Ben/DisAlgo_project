@@ -35,14 +35,14 @@ public class Coordinator {
 
     public void waitOnBarrier() {
         try {
-	    Socket socket = connectToHost(barrierIp, barrierPort);
+	        Socket socket = connectToHost(barrierIp, barrierPort);
             InputStream input = socket.getInputStream();
             InputStreamReader reader = new InputStreamReader(input);
             System.out.println("Accessing barrier...");
             int character;
             while ((character = reader.read()) != -1) {}
         } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            System.out.println("I/O error in waitOnBarrier: " + ex.getMessage());
         }
     }
 
@@ -50,14 +50,14 @@ public class Coordinator {
 	try {
             signalSocket.close();
         } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            System.out.println("I/O error in finishedBroadcasting: " + ex.getMessage());
         }
     }
 
     private Socket connectToHost(String ip, int port) {
         Socket socket = null;
         try {
-	    socket = new Socket(ip, port);
+            socket = new Socket(ip, port);
             OutputStream output = socket.getOutputStream();
             DataOutputStream writer = new DataOutputStream(output);
 
@@ -67,7 +67,7 @@ public class Coordinator {
 
             writer.write(bb.array(), 0, 8);
         } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            System.out.println("I/O error in connectToHost: " + ex.getMessage());
         }
 
         return socket;

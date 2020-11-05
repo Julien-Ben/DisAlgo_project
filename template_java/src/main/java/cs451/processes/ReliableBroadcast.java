@@ -9,6 +9,7 @@ import cs451.links.PerfectLink;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,8 +62,8 @@ public class ReliableBroadcast {
         neighbourHosts = new ArrayList<>(hosts.subList(Math.max(0, myIndex-halfWindowSize), Math.min(hosts.size(), myIndex+halfWindowSize+1)));
         neighbourHosts.remove(myHost);
         System.out.println("My neighbours are : ");
-        for (Host neighb : neighbourHosts) {
-            System.out.println(neighb.getId() + "");
+        for (Host neighbour : neighbourHosts) {
+            System.out.println(neighbour.getId() + "");
         }
     }
 
@@ -100,7 +101,7 @@ public class ReliableBroadcast {
                 writeToFile(outputFile, id + " : " + received.get().getContent());
             }
         }
-        coordinator.finishedBroadcasting();
+        //coordinator.finishedBroadcasting();
     }
 
     private void relayToNeighbours(Message m) {

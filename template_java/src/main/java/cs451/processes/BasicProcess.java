@@ -1,6 +1,7 @@
 package cs451.processes;
 
 import cs451.BarrierParser;
+import cs451.Coordinator;
 import cs451.Host;
 import cs451.messages.Message;
 import cs451.links.PerfectLink;
@@ -23,9 +24,9 @@ public class BasicProcess{
     private final int barrierPort;
     private final Long pid;
     private final Host myHost;
-    BarrierParser.Barrier barrier;
+    Coordinator coordinator;
 
-    public BasicProcess(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid, String barrierIp, int barrierPort, Host myHost) {
+    public BasicProcess(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid, String barrierIp, int barrierPort, Host myHost, Coordinator coordinator) {
         this.hosts = hosts;
         this.id = id;
         this.outputFile = outputFile;
@@ -35,6 +36,7 @@ public class BasicProcess{
         this.barrierIp = barrierIp;
         this.barrierPort = barrierPort;
         this.myHost = myHost;
+        this.coordinator = coordinator;
 
         System.out.println("My PID is " + pid + ".");
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
@@ -61,7 +63,7 @@ public class BasicProcess{
     }
 
     private void run() {
-        barrier.waitOnBarrier();
+        coordinator.waitOnBarrier();
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
         PerfectLink myLink = new PerfectLink(port);
         Thread fairLossThread = new Thread(myLink);
@@ -77,5 +79,6 @@ public class BasicProcess{
                 writeToFile(outputFile, id + " : " + new String(received.get().getContent()));
             }
         }
+        //coordinator.finishedBroadcasting();
     }
 }
