@@ -9,6 +9,7 @@ public class Parser {
     private IdParser idParser;
     private HostsParser hostsParser;
     private BarrierParser barrierParser;
+    private SignalParser signalParser;
     private OutputParser outputParser;
     private ConfigParser configParser;
 
@@ -22,32 +23,37 @@ public class Parser {
         idParser = new IdParser();
         hostsParser = new HostsParser();
         barrierParser = new BarrierParser();
+        signalParser = new SignalParser();
         outputParser = new OutputParser();
         configParser = null;
 
         int argsNum = args.length;
         if (argsNum != Constants.ARG_LIMIT_NO_CONFIG && argsNum != Constants.ARG_LIMIT_CONFIG) {
-            help("argslength");
+            help();
         }
 
         if (!idParser.populate(args[Constants.ID_KEY], args[Constants.ID_VALUE])) {
-            help("idparser");
+            help();
         }
 
         if (!hostsParser.populate(args[Constants.HOSTS_KEY], args[Constants.HOSTS_VALUE])) {
-            help("hostparser1");
+            help();
         }
 
         if (!hostsParser.inRange(idParser.getId())) {
-            help("hostparser2");
+            help();
         }
 
         if (!barrierParser.populate(args[Constants.BARRIER_KEY], args[Constants.BARRIER_VALUE])) {
-            help("barrierparser");
+            help();
+        }
+
+        if (!signalParser.populate(args[Constants.SIGNAL_KEY], args[Constants.SIGNAL_VALUE])) {
+            help();
         }
 
         if (!outputParser.populate(args[Constants.OUTPUT_KEY], args[Constants.OUTPUT_VALUE])) {
-            help("outputparser");
+            help();
         }
 
         if (argsNum == Constants.ARG_LIMIT_CONFIG) {
@@ -57,14 +63,9 @@ public class Parser {
         }
     }
 
-    private void help(String message) {
-        System.err.println("Usage: --id ID --hosts HOSTS --barier NAME:PORT --output OUTPUT [config]");
-        System.out.println(message);
-        System.exit(1);
-    }
-
     private void help() {
-        help("");
+        System.err.println("Usage: ./run.sh --id ID --hosts HOSTS --barrier NAME:PORT --signal NAME:PORT --output OUTPUT [config]");
+        System.exit(1);
     }
 
     public int myId() {
@@ -81,6 +82,14 @@ public class Parser {
 
     public int barrierPort() {
         return barrierParser.getPort();
+    }
+
+    public String signalIp() {
+        return signalParser.getIp();
+    }
+
+    public int signalPort() {
+        return signalParser.getPort();
     }
 
     public String output() {
