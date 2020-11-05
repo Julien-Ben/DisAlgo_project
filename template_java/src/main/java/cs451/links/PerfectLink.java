@@ -18,6 +18,7 @@ public class PerfectLink implements Link, Runnable{
     public void run() {
         while (true) {
             deliver();
+            //TODO resend a message only if it timed out (one timer per message)
             buffer.forEach((id,message) -> fairLossLink.send(message));
             try {
                 Thread.sleep(300);
@@ -36,6 +37,7 @@ public class PerfectLink implements Link, Runnable{
         Optional<Message> optMessage = fairLossLink.deliver();
         if (optMessage.isPresent()) {
             Message message = optMessage.get();
+            //TODO : add an atribute "isAck" in Message or Inheritance to avoid random conversion
             if (!message.getContent().startsWith("ack")) {
                 fairLossLink.send(new Message(0, "ack"+message.getId(), message.getDest(), message.getSender()));
             } else if (message.getContent().startsWith("ack")) {
