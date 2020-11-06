@@ -46,7 +46,7 @@ public class ReliableBroadcast {
         this.coordinator = coordinator;
 
         this.neighbourHosts = new ArrayList<>();
-        updateNeighbours(DEFAULT_HALF_WINDOW_SIZE); //hosts.size()/2 + 1
+        updateNeighbours(hosts.size()/2 + 1); //hosts.size()/2 + 1
 
         System.out.println("My PID is " + pid + ".");
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
@@ -82,23 +82,28 @@ public class ReliableBroadcast {
         }
     }
 
+    private void broadcast(long id) {
+        for (Host destHost: hosts) {
+            myLink.send(new Message(id, myHost.getId()+" "+id, myHost, destHost));
+        }
+    }
+
     private void run() {
         coordinator.waitOnBarrier();
-        String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
-        Thread fairLossThread = new Thread(myLink);
-        fairLossThread.start();
-        messageId = pid*1000;
-        for (Host destHost: hosts) {
-            myLink.send(new Message(messageId, message, myHost, destHost));
-            messageId++;
-        }
+        String message = "";
+        Thread linkThread = new Thread(myLink);
+        linkThread.start();
+
+        messageId = 0L;
+        broadcast(messageId);
+
         while (true) {
             Optional<Message> received = myLink.deliver();
             if (received.isPresent()) {
                 if (!received.get().isRelay()) {
                     relayToNeighbours(received.get());
+                    writeToFile(outputFile, received.get().getContent());
                 }
-                writeToFile(outputFile, id + " : " + received.get().getContent());
             }
         }
         //coordinator.finishedBroadcasting();
