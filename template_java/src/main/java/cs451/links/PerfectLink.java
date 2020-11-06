@@ -23,7 +23,7 @@ public class PerfectLink implements Link, Runnable{
             //TODO resend a message only if it timed out (one timer per message)
             buffer.forEach((id,message) -> fairLossLink.send(message));
             try {
-                Thread.sleep(300);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 System.out.print("Thread interrupted");
                 e.printStackTrace();
@@ -36,16 +36,17 @@ public class PerfectLink implements Link, Runnable{
             //TODO improve
             return;
         }
-        buffer.put(new Tuple(message.getSender().getId(), message.getId()), message);
+        buffer.put(new Tuple(message.getDest().getId(), message.getId()), message);
     }
 
     public Optional<Message> deliver() {
         Optional<Message> optMessage = fairLossLink.deliver();
         if (optMessage.isPresent()) {
             Message message = optMessage.get();
+            System.out.println("###DEBUG : "+message.getContent());
             //TODO : add an atribute "isAck" in Message or Inheritance to avoid random conversion
             if (message.getContent().equals("ack")) {
-                buffer.remove(new Tuple<Integer, Long>(message.getDest().getId(), message.getId()));
+                buffer.remove(new Tuple<Integer, Long>(message.getSender().getId(), message.getId()));
                 return Optional.empty();
             } else {
                 fairLossLink.send(new Message(message.getId(), "ack", message.getDest(), message.getSender()));

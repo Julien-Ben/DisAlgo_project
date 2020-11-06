@@ -16,7 +16,6 @@ public class Message implements Serializable {
         this.content = content;
         this.sender = sender;
         this.dest = dest;
-        this.isRelay = isRelay ;
     }
 
     public Message(long id, String content, Host sender, Host dest) {
@@ -70,13 +69,5 @@ public class Message implements Serializable {
 
     public void setDest(Host dest) {
         this.dest = dest;
-    }
-
-    public boolean isRelay() {
-        return isRelay;
-    }
-
-    public void setRelay(boolean relay) {
-        isRelay = relay;
     }
 }

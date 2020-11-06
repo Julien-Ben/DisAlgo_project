@@ -100,9 +100,10 @@ public class ReliableBroadcast {
         while (true) {
             Optional<Message> received = myLink.deliver();
             if (received.isPresent()) {
-                if (!received.get().isRelay()) {
-                    relayToNeighbours(received.get());
-                    writeToFile(outputFile, received.get().getContent());
+                Message m = received.get();
+                if (!isRelay(m.getContent())) {
+                    relayToNeighbours(m);
+                    writeToFile(outputFile, m.getContent());
                 }
             }
         }
@@ -111,7 +112,15 @@ public class ReliableBroadcast {
 
     private void relayToNeighbours(Message m) {
         for (Host neighbour: neighbourHosts) {
-            myLink.send(new Message(m.getId(), m.getContent(), m.getSender(), neighbour, true));
+            myLink.send(new Message(m.getId(), makeRelay(m.getContent()), myHost, neighbour));
         }
+    }
+
+    private String makeRelay(String content) {
+        return "relay" + content;
+    }
+
+    private boolean isRelay(String content) {
+        return content.startsWith("relay");
     }
 }

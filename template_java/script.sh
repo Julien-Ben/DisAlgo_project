@@ -19,7 +19,7 @@ do
 	PID=$!
 	echo $PID >> pid.txt
 done
-sleep 4
+sleep 8
 
 killall java
 for ((i=1;i<=$1;i++))
