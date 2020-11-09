@@ -1,7 +1,7 @@
 package cs451;
 
-import cs451.processes.BasicProcess;
-import cs451.processes.ReliableBroadcast;
+import cs451.broadcast.BestEffortBroadcast;
+import cs451.parser.Parser;
 
 public class Main {
 
@@ -49,7 +49,8 @@ public class Main {
         }
 
         //BasicProcess process = new BasicProcess(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost);
-        ReliableBroadcast process = new ReliableBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost, coordinator);
+        //ReliableBroadcast process = new ReliableBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost, coordinator);
+        BestEffortBroadcast process = new BestEffortBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, myHost, coordinator);
 
     }
 }

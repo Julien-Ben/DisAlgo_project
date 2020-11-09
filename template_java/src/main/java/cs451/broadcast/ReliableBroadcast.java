@@ -1,7 +1,7 @@
-package cs451.processes;
+package cs451.broadcast;
 
-import cs451.BarrierParser;
 import cs451.Coordinator;
+import cs451.Deliverer;
 import cs451.Host;
 import cs451.messages.Message;
 import cs451.links.PerfectLink;
@@ -9,14 +9,12 @@ import cs451.links.PerfectLink;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
  */
-public class ReliableBroadcast {
+public class ReliableBroadcast implements Deliverer {
     private final List<Host> hosts;
     private final int id;
     private final String outputFile;
@@ -44,7 +42,7 @@ public class ReliableBroadcast {
         this.barrierIp = barrierIp;
         this.barrierPort = barrierPort;
         this.myHost = myHost;
-        this.myLink = new PerfectLink(port);
+        this.myLink = new PerfectLink(this, port);
         this.coordinator = coordinator;
 
         this.neighbourHosts = new ArrayList<>();
@@ -99,18 +97,8 @@ public class ReliableBroadcast {
 
         messageId = 0L;
         broadcast(messageId);
+        coordinator.finishedBroadcasting();
 
-        while (true) {
-            Optional<Message> received = myLink.deliver();
-            if (received.isPresent()) {
-                Message m = received.get();
-                if (!isRelay(m.getContent())) {
-                    //relayToNeighbours(m);
-                    writeToFile(outputFile, m.getContent());
-                }
-            }
-        }
-        //coordinator.finishedBroadcasting();
     }
 
     private void relayToNeighbours(Message m) {
@@ -125,5 +113,13 @@ public class ReliableBroadcast {
 
     private boolean isRelay(String content) {
         return content.startsWith("relay");
+    }
+
+    @Override
+    public void deliver(Message message) {
+        if (!isRelay(message.getContent())) {
+            relayToNeighbours(message);
+            writeToFile(outputFile, message.getContent());
+        }
     }
 }

@@ -1,7 +1,7 @@
-package cs451.processes;
+package cs451.broadcast;
 
-import cs451.BarrierParser;
 import cs451.Coordinator;
+import cs451.Deliverer;
 import cs451.Host;
 import cs451.messages.Message;
 import cs451.links.PerfectLink;
@@ -9,12 +9,11 @@ import cs451.links.PerfectLink;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
  */
-public class BasicProcess{
+public class BasicProcess implements Deliverer {
     private final List<Host> hosts;
     private final int id;
     private final String outputFile;
@@ -65,7 +64,7 @@ public class BasicProcess{
     private void run() {
         coordinator.waitOnBarrier();
         String message = "Hello, i'm speaking My PID is " + pid + " and my Id is " + id;
-        PerfectLink myLink = new PerfectLink(port);
+        PerfectLink myLink = new PerfectLink(this, port);
         Thread fairLossThread = new Thread(myLink);
         fairLossThread.start();
         long beginId = pid*1000;
@@ -73,12 +72,11 @@ public class BasicProcess{
             myLink.send(new Message(beginId, message, myHost, destHost));
             beginId++;
         }
-        while (true) {
-            Optional<Message> received = myLink.deliver();
-            if (received.isPresent()) {
-                writeToFile(outputFile, id + " : " + new String(received.get().getContent()));
-            }
-        }
         //coordinator.finishedBroadcasting();
+    }
+
+    @Override
+    public void deliver(Message message) {
+        writeToFile(outputFile, id + " : " + new String(message.getContent()));
     }
 }

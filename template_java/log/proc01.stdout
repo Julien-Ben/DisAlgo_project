@@ -1,0 +1,28 @@
+List of hosts is:
+1, 127.0.0.1, 11001
+2, 127.0.0.1, 11002
+3, 127.0.0.1, 11003
+4, 127.0.0.1, 11004
+Config: /tmp/tmp_5ksml90
+My neighbours are : 
+2
+3
+4
+My PID is 5145.
+Use 'kill -SIGINT 5145 ' or 'kill -SIGTERM 5145 ' to stop processing packets.
+My id is 1.
+Barrier: 127.0.0.1:10000
+Output: /mnt/c/Users/jbenh/Documents/GitHub/DisAlgo_project/template_java/log/proc01.output
+Accessing barrier...
+###DEBUG : 1 0
+Successfully wrote to the file.
+###DEBUG : 4 0
+Successfully wrote to the file.
+###DEBUG : 2 0
+Successfully wrote to the file.
+###DEBUG : 3 0
+Successfully wrote to the file.
+###DEBUG : ack
+###DEBUG : ack
+###DEBUG : ack
+###DEBUG : ack
