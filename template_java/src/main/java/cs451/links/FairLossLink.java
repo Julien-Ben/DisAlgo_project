@@ -14,8 +14,8 @@ public class FairLossLink implements Link{
     private byte[] receiveBuffer;
     private DatagramSocket socket;
     private final int port;
-    private static final int BUFFER_SIZE = 2048;
-    private static final int UDP_RECEIVE_TIMEOUT = 50;
+    private static final int BUFFER_SIZE = 512;
+    private static final int UDP_RECEIVE_TIMEOUT = 100;
 
     public FairLossLink(int port) {
         this.sendBuffer = new byte[BUFFER_SIZE];
@@ -58,7 +58,6 @@ public class FairLossLink implements Link{
             socket.receive(packet_receive);
             return Optional.of(Message.deserialize(receiveBuffer));
         } catch (SocketTimeoutException e){
-            System.out.println("Timeout");
             return Optional.empty();
         } catch (IOException e) {
             System.out.println("An error occurred when receiving packet.");

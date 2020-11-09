@@ -19,10 +19,16 @@ do
 	PID=$!
 	echo $PID >> pid.txt
 done
-sleep 8
+sleep $(expr $1 + 5)
 
 killall java
 for ((i=1;i<=$1;i++))
 do
-	cat ${logfolder}out$i.txt #Deleting all previous output file
+	cat ${logfolder}out$i.txt
+done
+
+for ((i=1;i<=$1;i++))
+do
+	echo file number $i lines :
+	wc -l ${logfolder}out$i.txt
 done

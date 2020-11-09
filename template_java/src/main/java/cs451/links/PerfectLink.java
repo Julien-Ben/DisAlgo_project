@@ -23,7 +23,7 @@ public class PerfectLink implements Link, Runnable{
             //TODO resend a message only if it timed out (one timer per message)
             buffer.forEach((id,message) -> fairLossLink.send(message));
             try {
-                Thread.sleep(50);
+                Thread.sleep(400);
             } catch (InterruptedException e) {
                 System.out.print("Thread interrupted");
                 e.printStackTrace();

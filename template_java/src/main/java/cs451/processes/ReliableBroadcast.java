@@ -32,7 +32,9 @@ public class ReliableBroadcast {
     PerfectLink myLink;
     Coordinator coordinator;
 
-    public ReliableBroadcast(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid, String barrierIp, int barrierPort, Host myHost, Coordinator coordinator) {
+    //TODO remove barrierIp, barrierPort...
+    public ReliableBroadcast(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid,
+                             String barrierIp, int barrierPort, Host myHost, Coordinator coordinator) {
         this.hosts = hosts;
         this.id = id;
         this.outputFile = outputFile;
@@ -46,7 +48,7 @@ public class ReliableBroadcast {
         this.coordinator = coordinator;
 
         this.neighbourHosts = new ArrayList<>();
-        updateNeighbours(hosts.size()/2 + 1); //hosts.size()/2 + 1
+        updateNeighbours(hosts.size()); //hosts.size()/2 + 1
 
         System.out.println("My PID is " + pid + ".");
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
@@ -59,7 +61,8 @@ public class ReliableBroadcast {
 
     public void updateNeighbours(int halfWindowSize) {
         int myIndex = hosts.indexOf(myHost);
-        neighbourHosts = new ArrayList<>(hosts.subList(Math.max(0, myIndex-halfWindowSize), Math.min(hosts.size(), myIndex+halfWindowSize+1)));
+        neighbourHosts = new ArrayList<>(hosts.subList(Math.max(0, myIndex-halfWindowSize), Math.min(hosts.size(),
+                myIndex+halfWindowSize+1)));
         neighbourHosts.remove(myHost);
         System.out.println("My neighbours are : ");
         for (Host neighbour : neighbourHosts) {
@@ -102,7 +105,7 @@ public class ReliableBroadcast {
             if (received.isPresent()) {
                 Message m = received.get();
                 if (!isRelay(m.getContent())) {
-                    relayToNeighbours(m);
+                    //relayToNeighbours(m);
                     writeToFile(outputFile, m.getContent());
                 }
             }
