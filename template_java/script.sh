@@ -19,9 +19,10 @@ do
 	PID=$!
 	echo $PID >> pid.txt
 done
-sleep $(expr $1 + 5)
+sleep 4
 
 killall java
+sleep 1
 for ((i=1;i<=$1;i++))
 do
 	cat ${logfolder}out$i.txt

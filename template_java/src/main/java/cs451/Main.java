@@ -22,13 +22,14 @@ public class Main {
         });
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Parser parser = new Parser(args);
         parser.parse();
 
         initSignalHandlers();
 
-        Coordinator coordinator = new Coordinator(parser.myId(), parser.barrierIp(), parser.barrierPort(), parser.signalIp(), parser.signalPort());
+        Coordinator coordinator = new Coordinator(parser.myId(), parser.barrierIp(), parser.barrierPort(),
+                parser.signalIp(), parser.signalPort());
 
         // example
         long pid = ProcessHandle.current().pid();
@@ -48,9 +49,15 @@ public class Main {
             System.out.println("Config: " + parser.config());
         }
 
-        //BasicProcess process = new BasicProcess(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost);
-        //ReliableBroadcast process = new ReliableBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, parser.barrierIp(), parser.barrierPort(), myHost, coordinator);
-        BestEffortBroadcast process = new BestEffortBroadcast(parser.hosts(), parser.myId(), parser.output(), "", myPort, pid, myHost, coordinator);
+        System.out.println("My PID is " + pid + ".");
+        System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
+        System.out.println("My id is " + parser.myId() + ".");
 
+        Process process = new Process(parser.hosts(), parser.myId(), parser.output(), myPort, myHost, coordinator);
+
+        while (true) {
+            // Sleep for 1 hour
+            Thread.sleep(60 * 60 * 1000);
+        }
     }
 }

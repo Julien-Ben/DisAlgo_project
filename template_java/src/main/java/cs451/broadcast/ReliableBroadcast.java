@@ -1,7 +1,7 @@
 package cs451.broadcast;
 
 import cs451.Coordinator;
-import cs451.Deliverer;
+import cs451.Receiver;
 import cs451.Host;
 import cs451.messages.Message;
 import cs451.links.PerfectLink;
@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
  */
-public class ReliableBroadcast implements Deliverer {
+public class ReliableBroadcast implements Receiver {
     private final List<Host> hosts;
     private final int id;
     private final String outputFile;

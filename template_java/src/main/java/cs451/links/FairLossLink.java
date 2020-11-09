@@ -1,32 +1,29 @@
 package cs451.links;
 
-import cs451.Deliverer;
+import cs451.Receiver;
 import cs451.messages.Message;
 import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * Implements FairLossLink with UDP.
  */
-public class FairLossLink implements Link, Runnable{
+public class FairLossLink implements Runnable{
     private byte[] sendBuffer;
     private byte[] receiveBuffer;
     private DatagramSocket socket;
     private final int port;
     private static final int BUFFER_SIZE = 512;
-    private static final int UDP_RECEIVE_TIMEOUT = 100;
-    private final Deliverer deliverer;
+    private final Receiver receiver;
 
-    public FairLossLink(Deliverer deliverer, int port) {
-        this.deliverer = deliverer;
+    public FairLossLink(Receiver receiver, int port) {
+        this.receiver = receiver;
         this.sendBuffer = new byte[BUFFER_SIZE];
         this.receiveBuffer = new byte[BUFFER_SIZE];
         this.port = port;
         try {
             this.socket = new DatagramSocket(port);
-            socket.setSoTimeout(UDP_RECEIVE_TIMEOUT);
         } catch (SocketException e) {
             System.out.println("An error occurred when creating socket.");
             e.printStackTrace();
@@ -55,19 +52,13 @@ public class FairLossLink implements Link, Runnable{
         }
     }
 
-    public Optional<Message> deliver() {
-        return Optional.empty();
-    }
-
     @Override
     public void run() {
         while (true) {
             DatagramPacket packet_receive = new DatagramPacket(receiveBuffer, receiveBuffer.length);
             try {
                 socket.receive(packet_receive);
-                deliverer.deliver(Message.deserialize(receiveBuffer));
-            } catch (SocketTimeoutException e){
-                return;
+                receiver.deliver(Message.deserialize(receiveBuffer));
             } catch (IOException e) {
                 System.out.println("An error occurred when receiving packet.");
                 e.printStackTrace();

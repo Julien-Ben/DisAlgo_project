@@ -3,6 +3,7 @@ package cs451.messages;
 import cs451.Host;
 
 import java.io.*;
+import java.util.Objects;
 
 public class Message implements Serializable {
     private long id;
@@ -37,6 +38,23 @@ public class Message implements Serializable {
             ObjectInputStream is = new ObjectInputStream(in);
             return (Message)is.readObject();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Message message = (Message) o;
+        return id == message.id &&
+                isRelay == message.isRelay &&
+                Objects.equals(content, message.content) &&
+                Objects.equals(sender, message.sender) &&
+                Objects.equals(dest, message.dest);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, content, sender, dest, isRelay);
     }
 
     public long getId() {

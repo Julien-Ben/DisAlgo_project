@@ -1,23 +1,21 @@
 package cs451.links;
 
-import cs451.Deliverer;
+import cs451.Receiver;
 import cs451.messages.Message;
 
-import javax.swing.text.html.Option;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
-public class PerfectLink implements Runnable, Deliverer {
-    private FairLossLink fairLossLink;
-    private Map<Tuple<Integer, Long>, Message> buffer;
-    private final Deliverer deliverer;
+public class PerfectLink implements Runnable, Receiver {
+    private final FairLossLink fairLossLink;
+    private final Map<Tuple<Integer, Long>, Message> sendBuffer;
+    private final Set<Message> receivedMessages;
+    private final Receiver receiver;
 
-    public PerfectLink(Deliverer deliverer, int port) {
-        this.deliverer = deliverer;
+    public PerfectLink(Receiver receiver, int port) {
+        this.receiver = receiver;
         fairLossLink = new FairLossLink(this, port);
-        buffer = new HashMap<Tuple<Integer, Long>, Message>();
+        sendBuffer = new HashMap<Tuple<Integer, Long>, Message>();
+        receivedMessages = new HashSet<>();
         Thread fairLossThread = new Thread(fairLossLink);
         fairLossThread.start();
     }
@@ -26,9 +24,9 @@ public class PerfectLink implements Runnable, Deliverer {
     public void run() {
         while (true) {
             //TODO resend a message only if it timed out (one timer per message)
-            buffer.forEach((id,message) -> fairLossLink.send(message));
+            sendBuffer.forEach((id, message) -> fairLossLink.send(message));
             try {
-                Thread.sleep(400);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 System.out.print("Thread interrupted");
                 e.printStackTrace();
@@ -41,19 +39,21 @@ public class PerfectLink implements Runnable, Deliverer {
             //TODO improve
             return;
         }
-        buffer.put(new Tuple(message.getDest().getId(), message.getId()), message);
+        sendBuffer.put(new Tuple(message.getDest().getId(), message.getId()), message);
     }
 
     @Override
     public void deliver(Message message) {
-        System.out.println("###DEBUG : "+message.getContent());
         //TODO : add an atribute "isAck" in Message or Inheritance to avoid random conversion
         if (message.getContent().equals("ack")) {
-            buffer.remove(new Tuple<Integer, Long>(message.getSender().getId(), message.getId()));
-            return;
+            sendBuffer.remove(new Tuple<Integer, Long>(message.getSender().getId(), message.getId()));
+        } else if (receivedMessages.contains(message)){
+            System.out.println("###DEBUG message "+message.getContent() + "already delivered");
+            System.out.flush();
         } else {
             fairLossLink.send(new Message(message.getId(), "ack", message.getDest(), message.getSender()));
-            deliverer.deliver(message);
+            receivedMessages.add(message);
+            receiver.deliver(message);
         }
     }
 
