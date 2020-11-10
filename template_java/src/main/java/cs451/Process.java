@@ -1,6 +1,7 @@
 package cs451;
 
 import cs451.broadcast.BestEffortBroadcast;
+import cs451.broadcast.UniformReliableBroadcast;
 import cs451.messages.Message;
 
 import java.io.FileWriter;
@@ -12,11 +13,11 @@ import java.util.List;
  */
 public class Process implements Receiver {
     private final String outputFile;
-    private final BestEffortBroadcast broadcaster;
+    private final UniformReliableBroadcast broadcaster;
     private final Coordinator coordinator;
     public Process(List<Host> hosts, int id, String outputFile, int port, Host myHost, Coordinator coordinator) {
         this.outputFile = outputFile;
-        broadcaster = new BestEffortBroadcast(this, hosts, port, myHost, coordinator);
+        broadcaster = new UniformReliableBroadcast(this, hosts, port, myHost);
         this.coordinator = coordinator;
         run();
     }
@@ -38,7 +39,7 @@ public class Process implements Receiver {
 
     private void run(){
         coordinator.waitOnBarrier();
-        int NBR_MESSAGES = 30;
+        int NBR_MESSAGES = 3;
         for (int i = 0; i<NBR_MESSAGES; i++) {
             broadcaster.broadcast(i);
         }

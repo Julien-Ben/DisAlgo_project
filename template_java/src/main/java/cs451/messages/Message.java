@@ -9,18 +9,13 @@ public class Message implements Serializable {
     private long id;
     private String content;
     private Host sender;
-    private Host dest;
-    private boolean isRelay;
+    private Host originalSender;
 
-    public Message(long id, String content, Host sender, Host dest, boolean isRelay) {
+    public Message(long id, String content, Host sender, Host originalSender) {
         this.id = id;
         this.content = content;
         this.sender = sender;
-        this.dest = dest;
-    }
-
-    public Message(long id, String content, Host sender, Host dest) {
-        this(id, content, sender, dest, false);
+        this.originalSender = originalSender;
     }
 
     //StackOverflow https://stackoverflow.com/questions/3736058/java-object-to-byte-and-byte-to-object-converter-for-tokyo-cabinet/3736091
@@ -46,15 +41,14 @@ public class Message implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         Message message = (Message) o;
         return id == message.id &&
-                isRelay == message.isRelay &&
                 Objects.equals(content, message.content) &&
                 Objects.equals(sender, message.sender) &&
-                Objects.equals(dest, message.dest);
+                Objects.equals(originalSender, message.originalSender);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, content, sender, dest, isRelay);
+        return Objects.hash(id, content, sender, originalSender);
     }
 
     public long getId() {
@@ -81,11 +75,11 @@ public class Message implements Serializable {
         this.sender = sender;
     }
 
-    public Host getDest() {
-        return dest;
+    public Host getOriginalSender() {
+        return originalSender;
     }
 
-    public void setDest(Host dest) {
-        this.dest = dest;
+    public void setOriginalSender(Host dest) {
+        this.originalSender = dest;
     }
 }

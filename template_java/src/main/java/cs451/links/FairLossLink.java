@@ -1,5 +1,6 @@
 package cs451.links;
 
+import cs451.Host;
 import cs451.Receiver;
 import cs451.messages.Message;
 import java.io.IOException;
@@ -30,7 +31,7 @@ public class FairLossLink implements Runnable{
         }
     }
 
-    public void send(Message message) {
+    public void send(Message message, Host dest) {
         try {
             sendBuffer = (Arrays.copyOf(message.serialize(), BUFFER_SIZE));
         } catch (IOException e) {
@@ -38,7 +39,7 @@ public class FairLossLink implements Runnable{
         }
         DatagramPacket myPacket;
         try {
-            myPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(message.getDest().getIp()), message.getDest().getPort());
+            myPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(dest.getIp()), dest.getPort());
             socket.send(myPacket);
         } catch (UnknownHostException e){
             System.out.println("Unresolvable IP address.");

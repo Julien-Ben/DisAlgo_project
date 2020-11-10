@@ -16,13 +16,7 @@ import java.util.List;
  */
 public class ReliableBroadcast implements Receiver {
     private final List<Host> hosts;
-    private final int id;
     private final String outputFile;
-    private final String ip;
-    private final int port;
-    private final String barrierIp;
-    private final int barrierPort;
-    private final Long pid;
     private final Host myHost;
     private List<Host> neighbourHosts;
     private static final int DEFAULT_HALF_WINDOW_SIZE = 1;
@@ -31,29 +25,16 @@ public class ReliableBroadcast implements Receiver {
     Coordinator coordinator;
 
     //TODO remove barrierIp, barrierPort...
-    public ReliableBroadcast(List<Host> hosts, int id, String outputFile, String ip, int port, Long pid,
-                             String barrierIp, int barrierPort, Host myHost, Coordinator coordinator) {
+    public ReliableBroadcast(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator) {
         this.hosts = hosts;
-        this.id = id;
         this.outputFile = outputFile;
-        this.ip = ip;
-        this.port = port;
-        this.pid = pid;
-        this.barrierIp = barrierIp;
-        this.barrierPort = barrierPort;
         this.myHost = myHost;
-        this.myLink = new PerfectLink(this, port);
+        this.myLink = new PerfectLink(this, myHost);
         this.coordinator = coordinator;
 
         this.neighbourHosts = new ArrayList<>();
         updateNeighbours(hosts.size()); //hosts.size()/2 + 1
 
-        System.out.println("My PID is " + pid + ".");
-        System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
-        System.out.println("My id is " + id+ ".");
-
-        System.out.println("Barrier: " + barrierIp + ":" + barrierPort);
-        System.out.println("Output: " + outputFile);
         run();
     }
 
@@ -85,13 +66,12 @@ public class ReliableBroadcast implements Receiver {
 
     private void broadcast(long id) {
         for (Host destHost: hosts) {
-            myLink.send(new Message(id, myHost.getId()+" "+id, myHost, destHost));
+            myLink.send(new Message(id, myHost.getId()+" "+id, myHost, myHost), destHost);
         }
     }
 
     private void run() {
         coordinator.waitOnBarrier();
-        String message = "";
         Thread linkThread = new Thread(myLink);
         linkThread.start();
 
@@ -103,23 +83,15 @@ public class ReliableBroadcast implements Receiver {
 
     private void relayToNeighbours(Message m) {
         for (Host neighbour: neighbourHosts) {
-            myLink.send(new Message(m.getId(), makeRelay(m.getContent()), myHost, neighbour));
+            myLink.send(new Message(m.getId(), m.getContent(), myHost, m.getOriginalSender()), neighbour);
         }
-    }
-
-    private String makeRelay(String content) {
-        return "relay" + content;
-    }
-
-    private boolean isRelay(String content) {
-        return content.startsWith("relay");
     }
 
     @Override
     public void deliver(Message message) {
-        if (!isRelay(message.getContent())) {
+        if (message.getSender().equals(message.getOriginalSender())) {
             relayToNeighbours(message);
-            writeToFile(outputFile, message.getContent());
         }
+        writeToFile(outputFile, message.getContent());
     }
 }

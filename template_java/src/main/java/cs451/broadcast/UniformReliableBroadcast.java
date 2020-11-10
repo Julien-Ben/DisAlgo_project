@@ -5,36 +5,66 @@ import cs451.Host;
 import cs451.Receiver;
 import cs451.links.PerfectLink;
 import cs451.messages.Message;
+import cs451.tools.Pair;
 
-import java.util.List;
+import java.util.*;
 
 public class UniformReliableBroadcast implements Receiver {
     private final List<Host> hosts;
     private final Host myHost;
-    private final PerfectLink myLink;
-    private final Coordinator coordinator;
     private final Receiver receiver;
     private final BestEffortBroadcast beb;
 
+    //MessageId, OriginalSenderId
+    private final Set<Pair<Long, Long>> delivered;
+    //MessageId, OriginalSenderId
+    private final Set<Pair<Long, Long>> pending;
+
+    private final Map<Message, Set<Long>> ack;
+
     public UniformReliableBroadcast(Receiver receiver, List<Host> hosts, int port,
-                               Host myHost, Coordinator coordinator) {
+                               Host myHost) {
         this.hosts = hosts;
         this.myHost = myHost;
-        this.myLink = new PerfectLink(this, port);
-        this.coordinator = coordinator;
         this.receiver = receiver;
-        beb = new BestEffortBroadcast(this, hosts, port, myHost, coordinator);
+        beb = new BestEffortBroadcast(this, hosts, port, myHost);
 
-        Thread linkThread = new Thread(myLink);
-        linkThread.start();
+        this.delivered = new HashSet<>();
+        this.pending = new HashSet<>();
+        this.ack = new HashMap<>();
     }
 
     public void broadcast(long id) {
-        hosts.forEach(destHost -> myLink.send(new Message(id, myHost.getId()+" "+id, myHost, destHost)));
+        pending.add(new Pair<Long, Long>(id, (long) myHost.getId()));
+        beb.broadcast(id);
     }
 
     @Override
     public void deliver(Message message) {
-        receiver.deliver(message);
+        long originalSenderId = getOriginalSenderId(message);
+        ack.getOrDefault(message, new HashSet<Long>());
+        ack.get(message).add(originalSenderId);
+        Pair<Long, Long> pair = new Pair<>(originalSenderId, originalSenderId);
+        if (!pending.contains(pair)) {
+            pending.add(pair);
+            deliverIfYouCan(message, getOriginalSenderId(message));
+            beb.broadcast(message.getId(), originalSenderId + " " + message.getId());
+        }
+    }
+
+    private boolean canDeliver(Message m) {
+        return ack.get(m).size() > (double)hosts.size()/2.0;
+    }
+
+    private void deliverIfYouCan(Message message, long originalSenderId) {
+        Pair<Long, Long> pair = new Pair(message.getId(), originalSenderId);
+        if (pending.contains(pair) && canDeliver(message) && !delivered.contains(pair)) {
+            delivered.add(pair);
+            receiver.deliver(message);
+        }
+    }
+
+    private long getOriginalSenderId(Message message) {
+        return Long.parseLong(message.getContent().split(" ")[0]);
     }
 }
