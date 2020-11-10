@@ -41,22 +41,14 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
     @Override
     public void deliver(Message message) {
         Pair<Long, Integer> pair = new Pair<Long, Integer>(message.getId(), message.getOriginalSender().getId());
-        System.out.println("Ack content :");
-        System.out.println(ack.toString());
         int senderId = message.getSender().getId();
         //ComputeIfAbsent to avoid NullPointerException for new messages
-        if (!ack.containsKey(pair)){
-            ack.put(pair, new HashSet<>());
-        }
-        //ack.computeIfAbsent(pair, x -> new HashSet<>()).add(senderId);
-        ack.get(pair).add(senderId);
+        ack.computeIfAbsent(pair, x -> new HashSet<>()).add(senderId);
         if (!pending.contains(pair)) {
             pending.add(pair);
             beb.broadcast(new Message(message.getId(), message.getContent(), myHost, message.getOriginalSender()));
         }
         deliverIfYouCan(message);
-        System.out.println("Ack content AFTER:");
-        System.out.println(ack.toString());
     }
 
     private boolean canDeliver(Message m) {
@@ -64,9 +56,6 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
     }
 
     private void deliverIfYouCan(Message message) {
-        System.out.println("Trying to deliver the message");
-        System.out.println("Ack content :");
-        System.out.println(ack.toString());
         Pair<Long, Integer> pair = new Pair(message.getId(), message.getOriginalSender().getId());
         if (pending.contains(pair) && canDeliver(message) && !delivered.contains(pair)) {
             delivered.add(pair);

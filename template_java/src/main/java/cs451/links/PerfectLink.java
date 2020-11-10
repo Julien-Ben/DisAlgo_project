@@ -10,7 +10,7 @@ import java.util.*;
 public class PerfectLink implements Runnable, Receiver {
     private final FairLossLink fairLossLink;
     //Map Host, MessageID -> Message
-    private final HashMap<Pair<Host, Long>, Message> sendBuffer;
+    private final HashSet<Pair<Host, Message>> sendBuffer;
     private final Set<Message> receivedMessages;
     private final Receiver receiver;
     private final Host myHost;
@@ -19,7 +19,7 @@ public class PerfectLink implements Runnable, Receiver {
         this.receiver = receiver;
         this.myHost = myHost;
         fairLossLink = new FairLossLink(this, myHost.getPort());
-        sendBuffer = new HashMap<>();
+        sendBuffer = new HashSet<>();
         receivedMessages = new HashSet<>();
         Thread fairLossThread = new Thread(fairLossLink);
         fairLossThread.start();
@@ -30,7 +30,7 @@ public class PerfectLink implements Runnable, Receiver {
         while (true) {
             //TODO resend a message only if it timed out (one timer per message)
             try {
-                sendBuffer.forEach((keypair, message) -> fairLossLink.send(message, keypair.x));
+                sendBuffer.forEach((keypair) -> fairLossLink.send(keypair.y, keypair.x));
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("The content of sendbuffer was : ");
@@ -41,7 +41,7 @@ public class PerfectLink implements Runnable, Receiver {
                 System.err.println(sendBuffer.size());
             }
             try {
-                Thread.sleep(150);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 System.out.print("Thread interrupted");
                 e.printStackTrace();
@@ -54,14 +54,14 @@ public class PerfectLink implements Runnable, Receiver {
             //TODO improve
             return;
         }
-        sendBuffer.put(new Pair(dest, message.getId()), message);
+        sendBuffer.add(new Pair(dest, message));
     }
 
     @Override
     public void deliver(Message message) {
         //TODO : add an atribute "isAck" in Message or Inheritance to avoid random conversion
         if (message.getContent().equals("ack")) {
-            sendBuffer.remove(new Pair<>(message.getSender(), message.getId()));
+            sendBuffer.remove(new Pair<>(message.getSender(), new Message(message.getId(), message.getContent(), myHost, message.getOriginalSender())));
             /*sendBuffer.removeIf(pair ->
                     message.getSender().equals(pair.x) && message.getId() == pair.y.getId()
                     && message.getOriginalSender() == pair.y.getOriginalSender());*/

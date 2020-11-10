@@ -41,9 +41,9 @@ public class Message implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         Message message = (Message) o;
         return id == message.id &&
-                Objects.equals(content, message.content) &&
-                Objects.equals(sender, message.sender); /*&&
-                Objects.equals(originalSender, message.originalSender);*/
+                //Objects.equals(content, message.content) &&
+                Objects.equals(sender, message.sender) &&
+                Objects.equals(originalSender, message.originalSender);
     }
 
     @Override

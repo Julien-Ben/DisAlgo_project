@@ -43,7 +43,7 @@ public class Process implements Receiver {
 
     private void run(){
         coordinator.waitOnBarrier();
-        int NBR_MESSAGES = 1;
+        int NBR_MESSAGES = 10;
         for (int i = 0; i<NBR_MESSAGES; i++) {
             broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost));
         }
