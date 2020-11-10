@@ -16,11 +16,11 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
     private final BestEffortBroadcast beb;
 
     //MessageId, OriginalSenderId
-    private final Set<Pair<Long, Long>> delivered;
+    private final Set<Pair<Long, Integer>> delivered;
     //MessageId, OriginalSenderId
-    private final Set<Pair<Long, Long>> pending;
+    private final Set<Pair<Long, Integer>> pending;
 
-    private final Map<Message, Set<Long>> ack;
+    private final Map<Pair<Long, Integer>, Set<Integer>> ack;
 
     public UniformReliableBroadcast(Receiver receiver, List<Host> hosts, Host myHost) {
         this.hosts = hosts;
@@ -34,36 +34,44 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
     }
 
     public void broadcast(Message message) {
-        pending.add(new Pair<Long, Long>(message.getId(), (long) myHost.getId()));
+        pending.add(new Pair<>(message.getId(), myHost.getId()));
         beb.broadcast(message);
     }
 
     @Override
     public void deliver(Message message) {
-        long originalSenderId = getOriginalSenderId(message);
-        ack.getOrDefault(message, new HashSet<Long>());
-        ack.get(message).add(originalSenderId);
-        Pair<Long, Long> pair = new Pair<>(originalSenderId, originalSenderId);
+        Pair<Long, Integer> pair = new Pair<Long, Integer>(message.getId(), message.getOriginalSender().getId());
+        System.out.println("Ack content :");
+        System.out.println(ack.toString());
+        int senderId = message.getSender().getId();
+        //ComputeIfAbsent to avoid NullPointerException for new messages
+        if (!ack.containsKey(pair)){
+            ack.put(pair, new HashSet<>());
+        }
+        //ack.computeIfAbsent(pair, x -> new HashSet<>()).add(senderId);
+        ack.get(pair).add(senderId);
         if (!pending.contains(pair)) {
             pending.add(pair);
-            deliverIfYouCan(message, getOriginalSenderId(message));
-            beb.broadcast(message);
+            beb.broadcast(new Message(message.getId(), message.getContent(), myHost, message.getOriginalSender()));
         }
+        deliverIfYouCan(message);
+        System.out.println("Ack content AFTER:");
+        System.out.println(ack.toString());
     }
 
     private boolean canDeliver(Message m) {
-        return ack.get(m).size() > (double)hosts.size()/2.0;
+        return ack.getOrDefault( new Pair(m.getId(), m.getOriginalSender().getId()), new HashSet<>()).size() > (double)hosts.size()/2.0;
     }
 
-    private void deliverIfYouCan(Message message, long originalSenderId) {
-        Pair<Long, Long> pair = new Pair(message.getId(), originalSenderId);
+    private void deliverIfYouCan(Message message) {
+        System.out.println("Trying to deliver the message");
+        System.out.println("Ack content :");
+        System.out.println(ack.toString());
+        Pair<Long, Integer> pair = new Pair(message.getId(), message.getOriginalSender().getId());
         if (pending.contains(pair) && canDeliver(message) && !delivered.contains(pair)) {
             delivered.add(pair);
+            //TODO : remove from pending garbage collect
             receiver.deliver(message);
         }
-    }
-
-    private long getOriginalSenderId(Message message) {
-        return Long.parseLong(message.getContent().split(" ")[0]);
     }
 }

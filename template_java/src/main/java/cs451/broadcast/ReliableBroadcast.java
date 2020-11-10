@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
  */
-public class ReliableBroadcast implements Receiver {
+public class ReliableBroadcast implements Broadcaster, Receiver {
     private final List<Host> hosts;
     private final String outputFile;
     private final Host myHost;
@@ -64,9 +64,9 @@ public class ReliableBroadcast implements Receiver {
         }
     }
 
-    private void broadcast(long id) {
+    public void broadcast(Message message) {
         for (Host destHost: hosts) {
-            myLink.send(new Message(id, myHost.getId()+" "+id, myHost, myHost), destHost);
+            myLink.send(message, destHost);
         }
     }
 
@@ -76,7 +76,7 @@ public class ReliableBroadcast implements Receiver {
         linkThread.start();
 
         messageId = 0L;
-        broadcast(messageId);
+        //broadcast(messageId);
         coordinator.finishedBroadcasting();
 
     }

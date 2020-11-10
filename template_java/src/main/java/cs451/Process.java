@@ -18,9 +18,9 @@ public class Process implements Receiver {
     private final Coordinator coordinator;
     private final Host myHost;
 
-    public Process(List<Host> hosts, int id, String outputFile, int port, Host myHost, Coordinator coordinator) {
+    public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator) {
         this.outputFile = outputFile;
-        broadcaster = new BestEffortBroadcast(this, hosts, myHost);
+        broadcaster = new UniformReliableBroadcast(this, hosts, myHost);
         this.coordinator = coordinator;
         this.myHost = myHost;
         run();
@@ -43,7 +43,7 @@ public class Process implements Receiver {
 
     private void run(){
         coordinator.waitOnBarrier();
-        int NBR_MESSAGES = 3;
+        int NBR_MESSAGES = 1;
         for (int i = 0; i<NBR_MESSAGES; i++) {
             broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost));
         }

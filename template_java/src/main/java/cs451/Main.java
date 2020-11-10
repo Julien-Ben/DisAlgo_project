@@ -53,7 +53,7 @@ public class Main {
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
         System.out.println("My id is " + parser.myId() + ".");
 
-        Process process = new Process(parser.hosts(), parser.myId(), parser.output(), myPort, myHost, coordinator);
+        Process process = new Process(parser.hosts(), parser.output(), myHost, coordinator);
 
         while (true) {
             // Sleep for 1 hour

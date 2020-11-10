@@ -56,6 +56,11 @@ public class Host implements Serializable {
         return Objects.hash(id);
     }
 
+    @Override
+    public String toString() {
+        return "Id : " + id;
+    }
+
     public int getId() {
         return id;
     }

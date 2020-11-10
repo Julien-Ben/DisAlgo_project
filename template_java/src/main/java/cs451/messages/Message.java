@@ -42,13 +42,19 @@ public class Message implements Serializable {
         Message message = (Message) o;
         return id == message.id &&
                 Objects.equals(content, message.content) &&
-                Objects.equals(sender, message.sender) &&
-                Objects.equals(originalSender, message.originalSender);
+                Objects.equals(sender, message.sender); /*&&
+                Objects.equals(originalSender, message.originalSender);*/
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, content, sender, originalSender);
+    }
+
+    @Override
+    public String toString() {
+        return "{"+id+", "+content+", "+originalSender+", "+sender+"}";
+        //return "ID : " + id + " Content : " + content + "Original sender : "+originalSender + " Sender : " + sender;
     }
 
     public long getId() {
