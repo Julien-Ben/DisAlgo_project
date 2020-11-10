@@ -19,7 +19,7 @@ do
 	PID=$!
 	echo $PID >> pid.txt
 done
-sleep 4
+sleep $(expr $1 + 5)
 
 killall java
 sleep 1
