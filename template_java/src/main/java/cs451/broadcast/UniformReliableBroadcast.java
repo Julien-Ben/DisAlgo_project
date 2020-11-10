@@ -9,7 +9,7 @@ import cs451.tools.Pair;
 
 import java.util.*;
 
-public class UniformReliableBroadcast implements Receiver {
+public class UniformReliableBroadcast implements Broadcaster, Receiver {
     private final List<Host> hosts;
     private final Host myHost;
     private final Receiver receiver;
@@ -22,21 +22,20 @@ public class UniformReliableBroadcast implements Receiver {
 
     private final Map<Message, Set<Long>> ack;
 
-    public UniformReliableBroadcast(Receiver receiver, List<Host> hosts, int port,
-                               Host myHost) {
+    public UniformReliableBroadcast(Receiver receiver, List<Host> hosts, Host myHost) {
         this.hosts = hosts;
         this.myHost = myHost;
         this.receiver = receiver;
-        beb = new BestEffortBroadcast(this, hosts, port, myHost);
+        beb = new BestEffortBroadcast(this, hosts, myHost);
 
         this.delivered = new HashSet<>();
         this.pending = new HashSet<>();
         this.ack = new HashMap<>();
     }
 
-    public void broadcast(long id) {
-        pending.add(new Pair<Long, Long>(id, (long) myHost.getId()));
-        beb.broadcast(id);
+    public void broadcast(Message message) {
+        pending.add(new Pair<Long, Long>(message.getId(), (long) myHost.getId()));
+        beb.broadcast(message);
     }
 
     @Override
@@ -48,7 +47,7 @@ public class UniformReliableBroadcast implements Receiver {
         if (!pending.contains(pair)) {
             pending.add(pair);
             deliverIfYouCan(message, getOriginalSenderId(message));
-            beb.broadcast(message.getId(), originalSenderId + " " + message.getId());
+            beb.broadcast(message);
         }
     }
 

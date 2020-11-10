@@ -10,14 +10,13 @@ import java.util.List;
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
  */
-public class BestEffortBroadcast implements Receiver {
+public class BestEffortBroadcast implements Broadcaster, Receiver {
     private final List<Host> hosts;
     private final Host myHost;
     private final PerfectLink perfectLink;
     private final Receiver receiver;
 
-    public BestEffortBroadcast(Receiver receiver, List<Host> hosts, int port,
-                                Host myHost) {
+    public BestEffortBroadcast(Receiver receiver, List<Host> hosts, Host myHost) {
         this.hosts = hosts;
         this.myHost = myHost;
         this.perfectLink = new PerfectLink(this, myHost);
