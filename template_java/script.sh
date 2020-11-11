@@ -1,6 +1,8 @@
 #!/bin/bash
 logfolder='./log/'
 >host
+>config
+echo $2 > config
 for ((i=1;i<=$1;i++))
 do
 	echo $i localhost 1100$i >> host
@@ -15,11 +17,11 @@ nohup ../finishedSignal.py --host localhost --port 11999 --processes $1 > ${logf
 for ((i=1;i<=$1;i++))
 do
 	#Launching the processes
-	nohup ./run.sh --id $i --hosts host --barrier localhost:11000 --signal localhost:11999 --output ${logfolder}out$i.txt > ${logfolder}log$i.txt 2> ${logfolder}errors$i.txt < /dev/null &
+	nohup ./run.sh --id $i --hosts host --barrier localhost:11000 --signal localhost:11999 --output ${logfolder}out$i.txt config > ${logfolder}log$i.txt 2> ${logfolder}errors$i.txt < /dev/null &
 	PID=$!
 	echo $PID >> pid.txt
 done
-sleep $(expr $1 + 10 )
+sleep $(expr $1 + $2 )
 
 killall java
 sleep 1

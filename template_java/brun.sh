@@ -1,3 +1,3 @@
 #!/bin/bash
 ./build.sh
-./script.sh $1
+./script.sh $1 $2

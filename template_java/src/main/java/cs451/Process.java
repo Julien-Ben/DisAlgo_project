@@ -18,12 +18,14 @@ public class Process implements Receiver {
     private final Broadcaster broadcaster;
     private final Coordinator coordinator;
     private final Host myHost;
+    private final int messages;
 
-    public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator) {
+    public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator, int messages) {
         this.outputFile = outputFile;
         broadcaster = new FifoBroadcast(this, hosts, myHost);
         this.coordinator = coordinator;
         this.myHost = myHost;
+        this.messages = messages;
         run();
     }
 
@@ -44,15 +46,15 @@ public class Process implements Receiver {
 
     private void run(){
         coordinator.waitOnBarrier();
-        int NBR_MESSAGES = 15;
-        for (int i = 0; i<NBR_MESSAGES; i++) {
+        for (int i = 0; i<messages; i++) {
             broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost));
+            writeToFile(outputFile, "b " + i);
         }
         coordinator.finishedBroadcasting();
     }
 
     @Override
     public void deliver(Message message) {
-        writeToFile(outputFile, message.getContent());
+        writeToFile(outputFile, "d " + message.getContent());
     }
 }

@@ -1,7 +1,10 @@
 package cs451;
 
-import cs451.broadcast.BestEffortBroadcast;
 import cs451.parser.Parser;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 public class Main {
 
@@ -22,7 +25,7 @@ public class Main {
         });
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         Parser parser = new Parser(args);
         parser.parse();
 
@@ -44,20 +47,37 @@ public class Main {
             }
         }
 
+        int messages = 5; //Default number of messages
+
         // if config is defined; always check before parser.config()
         if (parser.hasConfig()) {
             System.out.println("Config: " + parser.config());
+            Scanner scanner = null;
+            try {
+                scanner = new Scanner(new File(parser.config()));
+            } catch (FileNotFoundException e) {
+                System.out.println("Impossible to open config file");
+                e.printStackTrace();
+                return;
+            }
+            while(scanner.hasNextInt()) {
+                messages = scanner.nextInt();
+            }
         }
 
         System.out.println("My PID is " + pid + ".");
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
         System.out.println("My id is " + parser.myId() + ".");
 
-        Process process = new Process(parser.hosts(), parser.output(), myHost, coordinator);
+        Process process = new Process(parser.hosts(), parser.output(), myHost, coordinator, messages);
 
         while (true) {
             // Sleep for 1 hour
-            Thread.sleep(60 * 60 * 1000);
+            try {
+                Thread.sleep(60 * 60 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
