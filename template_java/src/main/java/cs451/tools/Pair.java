@@ -27,6 +27,6 @@ public class Pair<X, Y> {
 
     @Override
     public String toString() {
-        return x.toString() + ", " + y.toString();
+        return "("+x.toString() + ", " + y.toString()+")";
     }
 }

@@ -41,7 +41,7 @@ public class PerfectLink implements Runnable, Receiver {
                 System.err.println(sendBuffer.size());
             }
             try {
-                Thread.sleep(100);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 System.out.print("Thread interrupted");
                 e.printStackTrace();

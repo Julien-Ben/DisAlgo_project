@@ -2,6 +2,7 @@ package cs451;
 
 import cs451.broadcast.BestEffortBroadcast;
 import cs451.broadcast.Broadcaster;
+import cs451.broadcast.FifoBroadcast;
 import cs451.broadcast.UniformReliableBroadcast;
 import cs451.messages.Message;
 
@@ -20,7 +21,7 @@ public class Process implements Receiver {
 
     public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator) {
         this.outputFile = outputFile;
-        broadcaster = new UniformReliableBroadcast(this, hosts, myHost);
+        broadcaster = new FifoBroadcast(this, hosts, myHost);
         this.coordinator = coordinator;
         this.myHost = myHost;
         run();
@@ -43,7 +44,7 @@ public class Process implements Receiver {
 
     private void run(){
         coordinator.waitOnBarrier();
-        int NBR_MESSAGES = 10;
+        int NBR_MESSAGES = 15;
         for (int i = 0; i<NBR_MESSAGES; i++) {
             broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost));
         }
