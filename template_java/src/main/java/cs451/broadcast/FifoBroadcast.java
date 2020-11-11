@@ -30,14 +30,14 @@ public class FifoBroadcast implements Broadcaster, Receiver {
         this.pending = new HashMap<>();
         this.next = new HashMap<>();
         for (Host host : hosts) {
-            next.put(host.getId(), 0l);
+            next.put(host.getId(), 1l);
         }
     }
 
     @Override
     public void broadcast(Message message) {
-        urb.broadcast(new Message(seqNb, message.getContent(), message.getSender(), message.getOriginalSender()));
         seqNb++;
+        urb.broadcast(new Message(seqNb, message.getContent(), message.getSender(), message.getOriginalSender()));
     }
 
     @Override

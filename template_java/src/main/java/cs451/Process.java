@@ -46,7 +46,7 @@ public class Process implements Receiver {
 
     private void run(){
         coordinator.waitOnBarrier();
-        for (int i = 0; i<messages; i++) {
+        for (int i = 1; i<=messages; i++) {
             broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost));
             writeToFile(outputFile, "b " + i);
         }
