@@ -7,11 +7,13 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class Main {
+    static Process process;
 
     private static void handleSignal() {
         //immediately stop network packet processing
         System.out.println("Immediately stopping network packet processing.");
-
+        process.flushStrBuilder();
+        process.closeFileWriter();
         //write/flush output file if necessary
         System.out.println("Writing output.");
     }
@@ -69,7 +71,7 @@ public class Main {
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
         System.out.println("My id is " + parser.myId() + ".");
 
-        Process process = new Process(parser.hosts(), parser.output(), myHost, coordinator, messages);
+        process = new Process(parser.hosts(), parser.output(), myHost, coordinator, messages);
 
         while (true) {
             // Sleep for 1 hour

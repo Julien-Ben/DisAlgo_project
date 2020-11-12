@@ -19,7 +19,7 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
     private final Set<Pair<Long, Integer>> delivered;
     //MessageId, OriginalSenderId
     private final Set<Pair<Long, Integer>> pending;
-
+    //MessageId, OriginalSenderId
     private final Map<Pair<Long, Integer>, Set<Integer>> ack;
 
     public UniformReliableBroadcast(Receiver receiver, List<Host> hosts, Host myHost) {
@@ -52,7 +52,8 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
     }
 
     private boolean canDeliver(Message m) {
-        return ack.getOrDefault( new Pair(m.getId(), m.getOriginalSender().getId()), new HashSet<>()).size() > (double)hosts.size()/2.0;
+        return ack.getOrDefault( new Pair(m.getId(), m.getOriginalSender().getId()),
+                new HashSet<>()).size() > (double)hosts.size()/2.0;
     }
 
     private void deliverIfYouCan(Message message) {
