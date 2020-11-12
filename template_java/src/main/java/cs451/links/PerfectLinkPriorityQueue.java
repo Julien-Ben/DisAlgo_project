@@ -8,19 +8,21 @@ import cs451.tools.Pair;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
-public class PerfectLink implements Runnable, Receiver {
+public class PerfectLinkPriorityQueue implements Runnable, Receiver {
     private final FairLossLink fairLossLink;
     private final PriorityBlockingQueue<SendQueueElement> sendQueue;
     private final Set<Message> receivedMessages;
     private final Receiver receiver;
     private final Host myHost;
+    private final Map<Host, Long> hostToTimeout;
 
-    public PerfectLink(Receiver receiver, Host myHost) {
+    public PerfectLinkPriorityQueue(Receiver receiver, Host myHost) {
         this.receiver = receiver;
         this.myHost = myHost;
         fairLossLink = new FairLossLink(this, myHost.getPort());
         sendQueue = new PriorityBlockingQueue<>();
         receivedMessages = new HashSet<>();
+        hostToTimeout = new HashMap<>();
         Thread fairLossThread = new Thread(fairLossLink);
         fairLossThread.start();
     }
@@ -35,12 +37,27 @@ public class PerfectLink implements Runnable, Receiver {
                     sleep(deltaTime);
                 }
                 fairLossLink.send(elem.getMessagePair().y, elem.getMessagePair().x);
-                elem.updateTimeStamp();
+                if (elem.firstTransmission) {
+                    elem.firstTransmission = false;
+                } else {
+                    updateTimeStamp(elem, true);
+                }
                 sendQueue.put(elem);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void updateTimeStamp(SendQueueElement elem, boolean inc) {
+        //Updating retransmission delay for host
+        Host messageHost = elem.getMessagePair().y.getSender();
+        long currentDelay = hostToTimeout.computeIfAbsent(messageHost, x -> SendQueueElement.INITIAL_TIMEOUT);
+        double increaserate = 0.2 * (1 - currentDelay/1000);
+        double decreaserate = 0.2 *  (1 - (20/currentDelay));
+        long newDelay = (long) (currentDelay * (inc ? 1 + increaserate : 1 - decreaserate));
+        hostToTimeout.put(messageHost, newDelay);
+        elem.updateTimeStamp(newDelay);
     }
 
     public void sleep(long milis) {
@@ -62,11 +79,12 @@ public class PerfectLink implements Runnable, Receiver {
 
     @Override
     public void deliver(Message message) {
-        System.out.println(message.toString());
         if (message.getContent().equals("ack")) {
             Pair comparePair = new Pair<>(message.getSender(), new Message(message.getId(),
                     message.getContent(), myHost, message.getOriginalSender()));
-            sendQueue.remove(new SendQueueElement(comparePair));
+            SendQueueElement elem = new SendQueueElement(comparePair);
+            sendQueue.remove(elem);
+            updateTimeStamp(elem, false);
         } else if (receivedMessages.contains(message)){
             //Do nothing
         } else {
@@ -80,16 +98,18 @@ public class PerfectLink implements Runnable, Receiver {
         private final Pair<Host, Message> messagePair;
         private long nextTimeStamp;
         private long timeout;
-        private static final long INITIAL_TIMEOUT = 50;
+        private static final long INITIAL_TIMEOUT = 20;
+        private boolean firstTransmission;
 
         public SendQueueElement(Pair<Host, Message> messagePair) {
             this.messagePair = messagePair;
             this.timeout = INITIAL_TIMEOUT;
             this.nextTimeStamp = System.currentTimeMillis() + INITIAL_TIMEOUT;
+            this.firstTransmission = true;
         }
 
-        public void updateTimeStamp() {
-            timeout *=2;
+        public void updateTimeStamp(long newDelay) {
+            timeout = newDelay;
             nextTimeStamp = System.currentTimeMillis() + timeout;
         }
 
