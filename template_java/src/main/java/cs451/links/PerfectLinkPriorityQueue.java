@@ -1,0 +1,132 @@
+package cs451.links;
+
+import cs451.Host;
+import cs451.Receiver;
+import cs451.messages.Message;
+import cs451.tools.Pair;
+
+import java.util.*;
+import java.util.concurrent.PriorityBlockingQueue;
+
+public class PerfectLink implements Runnable, Receiver {
+    private final FairLossLink fairLossLink;
+    private final PriorityBlockingQueue<SendQueueElement> sendQueue;
+    private final Set<Message> receivedMessages;
+    private final Receiver receiver;
+    private final Host myHost;
+
+    public PerfectLink(Receiver receiver, Host myHost) {
+        this.receiver = receiver;
+        this.myHost = myHost;
+        fairLossLink = new FairLossLink(this, myHost.getPort());
+        sendQueue = new PriorityBlockingQueue<>();
+        receivedMessages = new HashSet<>();
+        Thread fairLossThread = new Thread(fairLossLink);
+        fairLossThread.start();
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                SendQueueElement elem = sendQueue.take();
+                long deltaTime = elem.getNextTimeStamp() - System.currentTimeMillis();
+                if (deltaTime > 0) {
+                    sleep(deltaTime);
+                }
+                fairLossLink.send(elem.getMessagePair().y, elem.getMessagePair().x);
+                elem.updateTimeStamp();
+                sendQueue.put(elem);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void sleep(long milis) {
+        try {
+            Thread.sleep(milis);
+        } catch (InterruptedException e) {
+            System.out.print("Thread interrupted");
+            e.printStackTrace();
+        }
+    }
+
+    public void send(Message message, Host dest) {
+        if (message.getContent().equals("ack")) {
+            //TODO improve
+            return;
+        }
+        sendQueue.add(new SendQueueElement(new Pair(dest, message)));
+    }
+
+    @Override
+    public void deliver(Message message) {
+        System.out.println(message.toString());
+        if (message.getContent().equals("ack")) {
+            Pair comparePair = new Pair<>(message.getSender(), new Message(message.getId(),
+                    message.getContent(), myHost, message.getOriginalSender()));
+            sendQueue.remove(new SendQueueElement(comparePair));
+        } else if (receivedMessages.contains(message)){
+            //Do nothing
+        } else {
+            fairLossLink.send(new Message(message.getId(), "ack", myHost, message.getOriginalSender()), message.getSender());
+            receivedMessages.add(message);
+            receiver.deliver(message);
+        }
+    }
+
+    class SendQueueElement implements Comparable<SendQueueElement>{
+        private final Pair<Host, Message> messagePair;
+        private long nextTimeStamp;
+        private long timeout;
+        private static final long INITIAL_TIMEOUT = 50;
+
+        public SendQueueElement(Pair<Host, Message> messagePair) {
+            this.messagePair = messagePair;
+            this.timeout = INITIAL_TIMEOUT;
+            this.nextTimeStamp = System.currentTimeMillis() + INITIAL_TIMEOUT;
+        }
+
+        public void updateTimeStamp() {
+            timeout *=2;
+            nextTimeStamp = System.currentTimeMillis() + timeout;
+        }
+
+        public Pair<Host, Message> getMessagePair() {
+            return messagePair;
+        }
+
+        public long getNextTimeStamp() {
+            return nextTimeStamp;
+        }
+
+        @Override
+        public int compareTo(SendQueueElement o) {
+            //We want to inverse the priority
+            return o.nextTimeStamp < this.nextTimeStamp ? 1 : -1;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            SendQueueElement that = (SendQueueElement) o;
+            return Objects.equals(messagePair, that.messagePair);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(messagePair);
+        }
+
+        @Override
+        public String toString() {
+            return "SendQueueElement{" +
+                    "messagePair=" + messagePair.toString() +
+                    ", nextTimeStamp=" + nextTimeStamp +
+                    ", timeout=" + timeout +
+                    '}' + System.lineSeparator();
+        }
+    }
+}
