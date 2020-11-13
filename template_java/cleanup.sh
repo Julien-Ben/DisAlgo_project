@@ -5,3 +5,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 rm -f "$DIR"/bin/da_proc.jar
 rm -rf "$DIR"/target
+rm -r log

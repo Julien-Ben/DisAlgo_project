@@ -1,9 +1,7 @@
 package cs451.broadcast;
 
-import cs451.Coordinator;
 import cs451.Host;
 import cs451.Receiver;
-import cs451.links.PerfectLink;
 import cs451.messages.Message;
 import cs451.tools.Pair;
 
@@ -60,7 +58,7 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
         Pair<Long, Integer> pair = new Pair(message.getId(), message.getOriginalSender().getId());
         if (pending.contains(pair) && canDeliver(message) && !delivered.contains(pair)) {
             delivered.add(pair);
-            //TODO : remove from pending garbage collect
+            pending.remove(pair);
             receiver.deliver(message);
         }
     }

@@ -54,7 +54,7 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
         Host messageHost = elem.getMessagePair().y.getSender();
         long currentDelay = hostToTimeout.computeIfAbsent(messageHost, x -> SendQueueElement.INITIAL_TIMEOUT);
         double increaserate = 0.2 * (1 - currentDelay/1000);
-        double decreaserate = 0.2 *  (1 - (20/currentDelay));
+        double decreaserate = 0.2 *  (1 - (10/currentDelay));
         long newDelay = (long) (currentDelay * (inc ? 1 + increaserate : 1 - decreaserate));
         hostToTimeout.put(messageHost, newDelay);
         elem.updateTimeStamp(newDelay);
