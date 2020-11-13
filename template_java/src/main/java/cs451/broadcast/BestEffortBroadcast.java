@@ -2,6 +2,7 @@ package cs451.broadcast;
 
 import cs451.Receiver;
 import cs451.Host;
+import cs451.links.PerfectLink;
 import cs451.links.PerfectLinkPriorityQueue;
 import cs451.messages.Message;
 

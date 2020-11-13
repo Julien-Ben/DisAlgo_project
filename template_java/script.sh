@@ -5,7 +5,7 @@ logfolder='./log/'
 echo $2 > config
 for ((i=1;i<=$1;i++))
 do
-	echo $i localhost 1100$i >> host
+	echo $i localhost $((11000 + $i)) >> host
 	> ${logfolder}out$i.txt #Deleting all previous output file
 	echo ======file $i begining====== > ${logfolder}out$i.txt 
 done
@@ -17,12 +17,14 @@ nohup ../finishedSignal.py --host localhost --port 11999 --processes $1 > ${logf
 for ((i=1;i<=$1;i++))
 do
 	#Launching the processes
-	nohup ./run.sh --id $i --hosts host --barrier localhost:11000 --signal localhost:11999 --output ${logfolder}out$i.txt config > ${logfolder}log$i.txt 2> ${logfolder}errors$i.txt < /dev/null &
+	./run.sh --id $i --hosts host --barrier localhost:11000 --signal localhost:11999 --output ${logfolder}out$i.txt config > ${logfolder}log$i.txt 2> ${logfolder}errors$i.txt < /dev/null &
+	PID=$!
+	echo $PID
 done
 sleep $3
 
 killall java
-sleep 0.5
+sleep 1
 for ((i=1;i<=$1;i++))
 do
 	cat ${logfolder}out$i.txt
