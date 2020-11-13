@@ -18,8 +18,6 @@ for ((i=1;i<=$1;i++))
 do
 	#Launching the processes
 	nohup ./run.sh --id $i --hosts host --barrier localhost:11000 --signal localhost:11999 --output ${logfolder}out$i.txt config > ${logfolder}log$i.txt 2> ${logfolder}errors$i.txt < /dev/null &
-	PID=$!
-	echo $PID >> pid.txt
 done
 sleep $3
 
