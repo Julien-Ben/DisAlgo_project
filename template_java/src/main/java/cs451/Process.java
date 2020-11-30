@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
  */
-public class Process implements Receiver {
+public class Process implements Receiver, Runnable {
     private final String outputFile;
     private final Broadcaster broadcaster;
     private final Coordinator coordinator;
@@ -36,12 +36,11 @@ public class Process implements Receiver {
         this.stringBuilder = new StringBuilder(STR_BUILDER_BATCH);
         finishedHosts = new HashSet<>();
         try {
-            this.fileWriter = new FileWriter(outputFile, true);
-        } catch (IOException e) {
+            this.fileWriter = new FileWriter(outputFile+".txt", true);
+        } catch (Exception e) {
             System.out.println("An error occurred when opening file.");
             e.printStackTrace();
         }
-        run();
     }
 
     //TODO : move into a FileHelper
@@ -49,13 +48,14 @@ public class Process implements Receiver {
         try {
             //TODO : try with resource
             fileWriter.write(message);
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("An error occurred when writing file.");
             e.printStackTrace();
         }
     }
 
-    private void run(){
+    @Override
+    public void run(){
         coordinator.waitOnBarrier();
         timeStamp = System.currentTimeMillis();
         for (int i = 1; i<=messages; i++) {
@@ -71,6 +71,8 @@ public class Process implements Receiver {
         if (message.getId() == messages) {
             finishedHosts.add(message.getOriginalSender());
             if (finishedHosts.size() == hosts.size()) {
+                System.out.println("Flushing");
+                flushStrBuilder();
                 System.out.println("Finished in " + (System.currentTimeMillis() - timeStamp));
             }
         }
@@ -86,6 +88,7 @@ public class Process implements Receiver {
 
     public void flushStrBuilder() {
         writeToFile(stringBuilder.toString());
+        System.out.println(stringBuilder.toString());
         stringBuilder = new StringBuilder(STR_BUILDER_BATCH);
     }
 
