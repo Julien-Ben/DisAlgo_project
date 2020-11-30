@@ -3,46 +3,58 @@ package cs451.broadcast;
 import cs451.Host;
 import cs451.Receiver;
 import cs451.messages.Message;
+import cs451.messages.MessageVC;
 import cs451.tools.Pair;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
-    private final FifoBroadcast fifoBroadcast;
-    //MessageId, OriginalSenderId
-    private final Set<Pair<Long, Integer>> delivered;
+    private final UniformReliableBroadcast urb;
     private final Receiver receiver;
+    private final List<Host> hosts;
+
+    //Map (OriginalSenderID, SeqNb) -> Message
+    private final Map<Pair<Integer, Long>, Message> pending;
+    private final long[] V;
+    private long lsn;
+    private final int myRank;
 
     public LocalizedCausalBroadcast(Receiver receiver, List<Host> hosts, Host myHost) {
-        this.fifoBroadcast = new FifoBroadcast(this, hosts, myHost);
-        this.delivered = new HashSet<>();
+        this.urb = new UniformReliableBroadcast(this, hosts, myHost);
         this.receiver = receiver;
+        this.hosts = hosts;
+
+        this.pending = new HashMap<>();
+        V = new long[hosts.size()];
+        myRank = myHost.getId();
+        lsn = 0;
     }
 
     @Override
     public void broadcast(Message message) {
-        fifoBroadcast.broadcast(message);
-        past.add(message);
+        long[] W = V.clone();
+        W[myRank] = lsn;
+        lsn++;
+        urb.broadcast(new MessageVC(message, W));
     }
 
     @Override
     public void deliver(Message message) {
-        if (!delivered.contains(message)) {
-            for (Message n : past) {
-                if (!delivered.contains(n)) {
-                    receiver.deliver(n);
-                    delivered.add(n);
-                    if (!past.contains(n)) {
-                        past.add(n);
-                    }
+        pending.put(new Pair<>(message.getOriginalSender().getId(), message.getId()), message);
+        boolean cont = true;
+        while (cont) {
+            cont = false;
+            for (Host host : hosts) {
+                long vectorClock = V[host.getId()];
+                //Under this line : to be continued
+                Pair pair = new Pair<>(host.getId(), vectorClock);
+                if (pending.containsKey(pair)) {
+                    next.put(host.getId(), nextValue+1);
+                    Message m = pending.get(pair);
+                    pending.remove(pair);
+                    receiver.deliver(m);
+                    cont = true;
                 }
-            }
-            receiver.deliver(m);
-            delivered.add(m);
-            if (!past.contains(m)) {
-                past.add(m);
             }
         }
     }
