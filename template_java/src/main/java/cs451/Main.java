@@ -12,10 +12,11 @@ public class Main {
     private static void handleSignal() {
         //immediately stop network packet processing
         System.out.println("Immediately stopping network packet processing.");
-        process.flushStrBuilder();
-        process.closeFileWriter();
         //write/flush output file if necessary
         System.out.println("Writing output.");
+        process.flushStrBuilder();
+        process.closeFileWriter();
+
     }
 
     private static void initSignalHandlers() {
@@ -72,6 +73,7 @@ public class Main {
         System.out.println("My id is " + parser.myId() + ".");
 
         process = new Process(parser.hosts(), parser.output(), myHost, coordinator, messages);
+        process.run();
 
         while (true) {
             // Sleep for 1 hour

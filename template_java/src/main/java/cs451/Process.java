@@ -2,6 +2,7 @@ package cs451;
 
 import cs451.broadcast.Broadcaster;
 import cs451.broadcast.FifoBroadcast;
+import cs451.broadcast.LocalizedCausalBroadcast;
 import cs451.messages.Message;
 
 import java.io.FileWriter;
@@ -21,14 +22,14 @@ public class Process implements Receiver, Runnable {
     private final List<Host> hosts;
     private final int messages;
     private StringBuilder stringBuilder;
-    private static final int STR_BUILDER_BATCH = 16384;
+    private static final int STR_BUILDER_BATCH = 20;
     private FileWriter fileWriter;
     private Set<Host> finishedHosts;
     private long timeStamp = 0;
 
     public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator, int messages) {
         this.outputFile = outputFile;
-        broadcaster = new FifoBroadcast(this, hosts, myHost);
+        broadcaster = new LocalizedCausalBroadcast(this, hosts, myHost);
         this.coordinator = coordinator;
         this.myHost = myHost;
         this.hosts = hosts;
@@ -36,7 +37,7 @@ public class Process implements Receiver, Runnable {
         this.stringBuilder = new StringBuilder(STR_BUILDER_BATCH);
         finishedHosts = new HashSet<>();
         try {
-            this.fileWriter = new FileWriter(outputFile+".txt", true);
+            this.fileWriter = new FileWriter(outputFile, true);
         } catch (Exception e) {
             System.out.println("An error occurred when opening file.");
             e.printStackTrace();
@@ -59,7 +60,7 @@ public class Process implements Receiver, Runnable {
         coordinator.waitOnBarrier();
         timeStamp = System.currentTimeMillis();
         for (int i = 1; i<=messages; i++) {
-            broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost));
+            broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost, null));
             strBuilderAppend( "b " + i);
         }
         coordinator.finishedBroadcasting();
@@ -88,7 +89,6 @@ public class Process implements Receiver, Runnable {
 
     public void flushStrBuilder() {
         writeToFile(stringBuilder.toString());
-        System.out.println(stringBuilder.toString());
         stringBuilder = new StringBuilder(STR_BUILDER_BATCH);
     }
 

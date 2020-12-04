@@ -37,7 +37,7 @@ public class FifoBroadcast implements Broadcaster, Receiver {
     @Override
     public void broadcast(Message message) {
         seqNb++;
-        urb.broadcast(new Message(seqNb, message.getContent(), message.getSender(), message.getOriginalSender()));
+        urb.broadcast(new Message(seqNb, message.getContent(), message.getSender(), message.getOriginalSender(), message.getClock()));
     }
 
     @Override

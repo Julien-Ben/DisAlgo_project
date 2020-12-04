@@ -44,7 +44,7 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
         ack.computeIfAbsent(pair, x -> new HashSet<>()).add(senderId);
         if (!pending.contains(pair)) {
             pending.add(pair);
-            beb.broadcast(new Message(message.getId(), message.getContent(), myHost, message.getOriginalSender()));
+            beb.broadcast(new Message(message, myHost));
         }
         deliverIfYouCan(message);
     }

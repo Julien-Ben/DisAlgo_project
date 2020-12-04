@@ -10,13 +10,15 @@ import java.util.List;
 import java.util.Scanner;
 
 public class MainTest {
-    static Process process;
+    static List<Process> processes = new ArrayList<>();
 
     private static void handleSignal() {
         //immediately stop network packet processing
         System.out.println("Immediately stopping network packet processing.");
-        process.flushStrBuilder();
-        process.closeFileWriter();
+        for (Process process : processes) {
+            process.flushStrBuilder();
+            process.closeFileWriter();
+        }
         //write/flush output file if necessary
         System.out.println("Writing output.");
     }
@@ -47,7 +49,7 @@ public class MainTest {
 
         }
 
-        int messages = 200; //Default number of messages
+        int messages = 8; //Default number of messages
 
         // if config is defined; always check before parser.config()
         if (parser.hasConfig()) {
@@ -64,16 +66,12 @@ public class MainTest {
                 messages = scanner.nextInt();
             }
         }
-        int processNbr = 8;
-        /*try {
-            Runtime.getRuntime().exec("python ../barrier.py --host localhost --port 11000 --processes "+processNbr);
-            Runtime.getRuntime().exec("python ../finishedSignal.py --host localhost --port 11999 --processes "+processNbr);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
+        int processNbr = 4;
+
         for (Host host: parser.hosts()) {
-            process = new Process(parser.hosts(), parser.output()+host.getId(), host, coordinators.get(host.getId()-1), messages);
+            Process process = new Process(parser.hosts(), parser.output()+host.getId(), host, coordinators.get(host.getId()-1), messages);
             Thread procThread = new Thread(process);
+            processes.add(process);
             procThread.start();
         }
 

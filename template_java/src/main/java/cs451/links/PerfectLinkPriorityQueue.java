@@ -80,15 +80,14 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
     @Override
     public void deliver(Message message) {
         if (message.getContent().equals("ack")) {
-            Pair comparePair = new Pair<>(message.getSender(), new Message(message.getId(),
-                    message.getContent(), myHost, message.getOriginalSender()));
+            Pair comparePair = new Pair<>(message.getSender(), new Message(message, myHost));
             SendQueueElement elem = new SendQueueElement(comparePair);
             sendQueue.remove(elem);
             updateTimeStamp(elem, false);
         } else if (receivedMessages.contains(message)){
             //Do nothing
         } else {
-            fairLossLink.send(new Message(message.getId(), "ack", myHost, message.getOriginalSender()), message.getSender());
+            fairLossLink.send(new Message(message.getId(), "ack", myHost, message.getOriginalSender(), message.getClock()), message.getSender());
             receivedMessages.add(message);
             receiver.deliver(message);
         }

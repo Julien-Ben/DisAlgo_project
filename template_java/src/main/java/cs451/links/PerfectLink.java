@@ -54,12 +54,12 @@ public class PerfectLink implements Runnable, Receiver {
     public void deliver(Message message) {
         //TODO : add an atribute "isAck" in Message or Inheritance to avoid random conversion
         if (message.getContent().equals("ack")) {
-            sendBuffer.remove(new Pair<>(message.getSender(), new Message(message.getId(), message.getContent(), myHost, message.getOriginalSender())));
+            sendBuffer.remove(new Pair<>(message.getSender(), new Message(message, myHost)));
 
         } else if (receivedMessages.contains(message)){
             //Do nothing
         } else {
-            fairLossLink.send(new Message(message.getId(), "ack", myHost, message.getOriginalSender()), message.getSender());
+            fairLossLink.send(new Message(message.getId(), "ack", myHost, message.getOriginalSender(), message.getClock()), message.getSender());
             receivedMessages.add(message);
             receiver.deliver(message);
         }

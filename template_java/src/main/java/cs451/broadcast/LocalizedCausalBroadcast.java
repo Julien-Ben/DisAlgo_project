@@ -3,7 +3,6 @@ package cs451.broadcast;
 import cs451.Host;
 import cs451.Receiver;
 import cs451.messages.Message;
-import cs451.messages.MessageVC;
 import cs451.tools.Pair;
 
 import java.util.*;
@@ -27,34 +26,34 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
         this.pending = new HashMap<>();
         V = new long[hosts.size()];
         myRank = myHost.getId();
-        lsn = 0;
+        lsn = 1;
+        for (int i = 0; i < V.length; i++) {
+            V[i]=1;
+        }
     }
 
     @Override
     public void broadcast(Message message) {
         long[] W = V.clone();
-        W[myRank] = lsn;
+        W[myRank-1] = lsn;
         lsn++;
-        urb.broadcast(new MessageVC(message, W));
+        urb.broadcast(new Message(message, W));
     }
 
     @Override
     public void deliver(Message message) {
-        pending.put(new Pair<>(message.getOriginalSender().getId(), message.getId()), message);
+        int originalSenderId = message.getOriginalSender().getId();
+        pending.put(new Pair<>(originalSenderId, message.getId()), message);
         boolean cont = true;
-        while (cont) {
-            cont = false;
-            for (Host host : hosts) {
-                long vectorClock = V[host.getId()];
-                //Under this line : to be continued
-                Pair pair = new Pair<>(host.getId(), vectorClock);
-                if (pending.containsKey(pair)) {
-                    next.put(host.getId(), nextValue+1);
-                    Message m = pending.get(pair);
-                    pending.remove(pair);
-                    receiver.deliver(m);
-                    cont = true;
-                }
+        long clockSender = message.getClock()[originalSenderId-1];
+        for (long myClock = V[originalSenderId-1]; myClock <= clockSender && cont ; myClock++) {
+            Pair pair = new Pair<>(message.getOriginalSender().getId(), myClock);
+            if (pending.containsKey(pair)) {
+                V[originalSenderId-1]++;
+                receiver.deliver(pending.get(pair));
+                pending.remove(pair);
+            } else {
+                cont = false;
             }
         }
     }

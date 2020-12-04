@@ -10,12 +10,22 @@ public class Message implements Serializable {
     private String content;
     private Host sender;
     private Host originalSender;
+    private final long[] clock;
 
-    public Message(long id, String content, Host sender, Host originalSender) {
+    public Message(long id, String content, Host sender, Host originalSender, long[] clock) {
         this.id = id;
         this.content = content;
         this.sender = sender;
         this.originalSender = originalSender;
+        this.clock = clock;
+    }
+
+    public Message(Message m, Host sender) {
+        this(m.getId(), m.getContent(), sender, m.getOriginalSender(), m.getClock());
+    }
+
+    public Message(Message m, long[] clock) {
+        this(m.getId(), m.getContent(), m.getSender(), m.getOriginalSender(), clock);
     }
 
     //StackOverflow https://stackoverflow.com/questions/3736058/java-object-to-byte-and-byte-to-object-converter-for-tokyo-cabinet/3736091
@@ -87,5 +97,9 @@ public class Message implements Serializable {
 
     public void setOriginalSender(Host dest) {
         this.originalSender = dest;
+    }
+
+    public long[] getClock() {
+        return clock;
     }
 }
