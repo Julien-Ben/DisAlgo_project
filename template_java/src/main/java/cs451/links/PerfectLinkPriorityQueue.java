@@ -87,7 +87,8 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
         } else if (receivedMessages.contains(message)){
             //Do nothing
         } else {
-            fairLossLink.send(new Message(message.getId(), "ack", myHost, message.getOriginalSender(), message.getClock()), message.getSender());
+            fairLossLink.send(new Message(message.getId(), "ack", myHost, message.getOriginalSender(),
+                    message.getClock()), message.getSender());
             receivedMessages.add(message);
             receiver.deliver(message);
         }
