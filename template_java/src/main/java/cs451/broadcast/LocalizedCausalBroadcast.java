@@ -16,8 +16,9 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
 
     //Limit the number of messages transmitted at the same time on the network
     //Improvment : better congestion control and move it to perfect link
-    private static final int MAX_MESSAGES = 6000;
-    private final Semaphore semaphore = new Semaphore(MAX_MESSAGES);
+    //Found empirically
+    private static final int MAX_MESSAGES = 6000 * 3;
+    private final Semaphore semaphore;
     
     private final Map<Integer, HashSet<Integer>> causalities;
     //Map (OriginalSenderID, SeqNb) -> Message
@@ -34,6 +35,7 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
         this.receiver = receiver;
         this.hosts = hosts;
         this.myHost = myHost;
+        this.semaphore = new Semaphore(MAX_MESSAGES/hosts.size());
         if (causalities==null) {
             this.causalities = null;
         } else {
@@ -73,6 +75,7 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
 
     @Override
     public void deliver(Message message) {
+        //Not proud of that code, not optimized, not readable, spaghetti
         int originalSenderId = message.getOriginalSenderId();
         if (!canDeliver(message)) {
             pendingQueues.get(message.getOriginalSenderId()).add(message);
