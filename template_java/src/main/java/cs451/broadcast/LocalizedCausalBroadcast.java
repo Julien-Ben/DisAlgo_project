@@ -51,13 +51,13 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
 
     @Override
     public void broadcast(Message message) {
-        try {
-            semaphore.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            semaphore.release();
-            return;
-        }
+//        try {
+//            semaphore.acquire();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//            semaphore.release();
+//            return;
+//        }
         long[] W = vClockSend.clone();
         W[myRank-1] = lsn;
         lsn++;
@@ -66,7 +66,7 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
 
     @Override
     public void deliver(Message message) {
-        int originalSenderId = message.getOriginalSender().getId();
+        int originalSenderId = message.getOriginalSenderId();
         if (!canDeliver(message)) {
             pending.put(new Pair<>(originalSenderId, message.getId()), message);
         }
@@ -84,14 +84,14 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
                         Pair<Integer, Long> p = pairMessageEntry.getKey();
                         if (canDeliver(m)) {
                             vClockDeliver[p.x-1]++;
-                            if (causalities.get(myHost.getId()).contains(m.getOriginalSender().getId())) {
+                            if (causalities.get(myHost.getId()).contains(m.getOriginalSenderId())) {
                                 vClockSend[p.x-1]++;
                             }
                             pending.remove(p);
                             receiver.deliver(m);
-                            if (m.getOriginalSender().getId() == myHost.getId()){
-                                semaphore.release();
-                            }
+//                            if (m.getOriginalSender().getId() == myHost.getId()){
+//                                semaphore.release();
+//                            }
                             cont = true;
                             break;
                         }

@@ -22,7 +22,7 @@ public class Process implements Receiver, Runnable {
     private StringBuilder stringBuilder;
     private static final int STR_BUILDER_BATCH = 16384;
     private FileWriter fileWriter;
-    private Set<Host> finishedHosts;
+    private Set<Integer> finishedHosts;
     private long timeStamp = 0;
 
     public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator, int messages,
@@ -59,7 +59,7 @@ public class Process implements Receiver, Runnable {
         coordinator.waitOnBarrier();
         timeStamp = System.currentTimeMillis();
         for (int i = 1; i<=messages; i++) {
-            broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost, myHost, null));
+            broadcaster.broadcast(new Message(i, myHost.getId() + " " + i, myHost.getId(), myHost.getId(), null));
             strBuilderAppend( "b " + i);
         }
         coordinator.finishedBroadcasting();
@@ -68,12 +68,12 @@ public class Process implements Receiver, Runnable {
     @Override
     public void deliver(Message message) {
         strBuilderAppend("d " + message.getContent());
-        if (message.getId() % 2000 == 0 && message.getOriginalSender().getId() == myHost.getId()) {
+        if (message.getId() % 500 == 0 && message.getOriginalSenderId() == myHost.getId()) {
             System.out.println(myHost.getId() + " " + message.getId());
             System.out.println("Time : "+(System.currentTimeMillis() - timeStamp));
         }
         if (message.getId() == messages) {
-            finishedHosts.add(message.getOriginalSender());
+            finishedHosts.add(message.getOriginalSenderId());
             if (finishedHosts.size() == hosts.size()) {
                 System.out.println("Flushing");
                 flushStrBuilder();

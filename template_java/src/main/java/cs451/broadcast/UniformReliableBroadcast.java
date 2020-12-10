@@ -38,24 +38,24 @@ public class UniformReliableBroadcast implements Broadcaster, Receiver {
 
     @Override
     public void deliver(Message message) {
-        Pair<Long, Integer> pair = new Pair<Long, Integer>(message.getId(), message.getOriginalSender().getId());
-        int senderId = message.getSender().getId();
+        Pair<Long, Integer> pair = new Pair<Long, Integer>(message.getId(), message.getOriginalSenderId());
+        int senderId = message.getSenderId();
         //ComputeIfAbsent to avoid NullPointerException for new messages
         ack.computeIfAbsent(pair, x -> new HashSet<>()).add(senderId);
         if (!pending.contains(pair)) {
             pending.add(pair);
-            beb.broadcast(new Message(message, myHost));
+            beb.broadcast(new Message(message, myHost.getId()));
         }
         deliverIfYouCan(message);
     }
 
     private boolean canDeliver(Message m) {
-        return ack.getOrDefault( new Pair(m.getId(), m.getOriginalSender().getId()),
+        return ack.getOrDefault( new Pair(m.getId(), m.getOriginalSenderId()),
                 new HashSet<>()).size() > (double)hosts.size()/2.0;
     }
 
     private void deliverIfYouCan(Message message) {
-        Pair<Long, Integer> pair = new Pair(message.getId(), message.getOriginalSender().getId());
+        Pair<Long, Integer> pair = new Pair(message.getId(), message.getOriginalSenderId());
         if (pending.contains(pair) && canDeliver(message) && !delivered.contains(pair)) {
             delivered.add(pair);
             pending.remove(pair);

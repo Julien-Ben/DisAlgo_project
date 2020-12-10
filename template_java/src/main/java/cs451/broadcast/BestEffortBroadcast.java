@@ -22,7 +22,7 @@ public class BestEffortBroadcast implements Broadcaster, Receiver {
         this.hosts = hosts;
         this.myHost = myHost;
         //this.perfectLink = new PerfectLink(this, myHost);
-        this.perfectLink = new PerfectLinkPriorityQueue(this, myHost);
+        this.perfectLink = new PerfectLinkPriorityQueue(this, myHost, hosts);
         this.receiver = receiver;
 
         Thread linkThread = new Thread(perfectLink);

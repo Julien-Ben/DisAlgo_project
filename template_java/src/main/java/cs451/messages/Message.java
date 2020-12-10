@@ -8,24 +8,24 @@ import java.util.Objects;
 public class Message implements Serializable {
     private long id;
     private String content;
-    private Host sender;
-    private Host originalSender;
+    private int senderId;
+    private int originalSenderId;
     private final long[] clock;
 
-    public Message(long id, String content, Host sender, Host originalSender, long[] clock) {
+    public Message(long id, String content, int senderId, int originalSenderId, long[] clock) {
         this.id = id;
         this.content = content;
-        this.sender = sender;
-        this.originalSender = originalSender;
+        this.senderId = senderId;
+        this.originalSenderId = originalSenderId;
         this.clock = clock;
     }
 
-    public Message(Message m, Host sender) {
-        this(m.getId(), m.getContent(), sender, m.getOriginalSender(), m.getClock());
+    public Message(Message m, int senderId) {
+        this(m.getId(), m.getContent(), senderId, m.getOriginalSenderId(), m.getClock());
     }
 
     public Message(Message m, long[] clock) {
-        this(m.getId(), m.getContent(), m.getSender(), m.getOriginalSender(), clock);
+        this(m.getId(), m.getContent(), m.getSenderId(), m.getOriginalSenderId(), clock);
     }
 
     //StackOverflow https://stackoverflow.com/questions/3736058/java-object-to-byte-and-byte-to-object-converter-for-tokyo-cabinet/3736091
@@ -52,18 +52,18 @@ public class Message implements Serializable {
         Message message = (Message) o;
         return id == message.id &&
                 //Objects.equals(content, message.content) &&
-                Objects.equals(sender, message.sender) &&
-                Objects.equals(originalSender, message.originalSender);
+                Objects.equals(senderId, message.senderId) &&
+                Objects.equals(originalSenderId, message.originalSenderId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, content, sender, originalSender);
+        return Objects.hash(id, content, senderId, originalSenderId);
     }
 
     @Override
     public String toString() {
-        return "{"+id+", "+content+", "+originalSender+", "+sender+"}";
+        return "{"+id+", "+content+", "+originalSenderId+", "+senderId+"}";
         //return "ID : " + id + " Content : " + content + "Original sender : "+originalSender + " Sender : " + sender;
     }
 
@@ -83,20 +83,12 @@ public class Message implements Serializable {
         this.content = content;
     }
 
-    public Host getSender() {
-        return sender;
+    public int getSenderId() {
+        return senderId;
     }
 
-    public void setSender(Host sender) {
-        this.sender = sender;
-    }
-
-    public Host getOriginalSender() {
-        return originalSender;
-    }
-
-    public void setOriginalSender(Host dest) {
-        this.originalSender = dest;
+    public int getOriginalSenderId() {
+        return originalSenderId;
     }
 
     public long[] getClock() {

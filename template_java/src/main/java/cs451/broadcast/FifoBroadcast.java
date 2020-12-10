@@ -37,12 +37,12 @@ public class FifoBroadcast implements Broadcaster, Receiver {
     @Override
     public void broadcast(Message message) {
         seqNb++;
-        urb.broadcast(new Message(seqNb, message.getContent(), message.getSender(), message.getOriginalSender(), message.getClock()));
+        urb.broadcast(new Message(seqNb, message.getContent(), message.getSenderId(), message.getOriginalSenderId(), message.getClock()));
     }
 
     @Override
     public void deliver(Message message) {
-        pending.put(new Pair<>(message.getOriginalSender().getId(), message.getId()), message);
+        pending.put(new Pair<>(message.getOriginalSenderId(), message.getId()), message);
         boolean cont = true;
         while (cont) {
             cont = false;
