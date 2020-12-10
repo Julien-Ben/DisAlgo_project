@@ -14,7 +14,8 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
     private final FairLossLink fairLossLink;
     private final PriorityBlockingQueue<SendQueueElement> sendQueue;
     private final Set<Message> receivedMessages;
-    private final Set<Message> sentMessages;
+    //Pair Dest, Message
+    private final Set<Pair<Integer,Message>> sentMessages;
     private final Receiver receiver;
     private final List<Host> hosts;
     private final Host myHost;
@@ -38,7 +39,7 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
         while (true) {
             try {
                 SendQueueElement elem = sendQueue.take();
-                if (!sentMessages.contains(elem.getMessagePair().y)) {
+                if (!sentMessages.contains(elem.getMessagePair())) {
                     long deltaTime = elem.getNextTimeStamp() - System.currentTimeMillis();
                     if (deltaTime > 0) {
                         sleep(deltaTime);
@@ -91,10 +92,7 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
     public void deliver(Message message) {
         if (message.getContent().equals("ack")) {
             Pair comparePair = new Pair<>(message.getSenderId(), new Message(message, myHost.getId()));
-            SendQueueElement elem = new SendQueueElement(comparePair);
-            //sendQueue.remove(elem);
-            sentMessages.add(message);
-            updateTimeStamp(elem, false);
+            sentMessages.add(comparePair);
         } else if (receivedMessages.contains(message)){
             //Do nothing
         } else {
@@ -106,6 +104,7 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
     }
 
     class SendQueueElement implements Comparable<SendQueueElement>{
+        //Dest host id, message
         private final Pair<Integer, Message> messagePair;
         private long nextTimeStamp;
         private long timeout;

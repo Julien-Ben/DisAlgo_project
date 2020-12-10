@@ -68,7 +68,7 @@ public class Process implements Receiver, Runnable {
     @Override
     public void deliver(Message message) {
         strBuilderAppend("d " + message.getContent());
-        if (message.getId() % 500 == 0 && message.getOriginalSenderId() == myHost.getId()) {
+        if (message.getId() % 2000 == 0 && message.getOriginalSenderId() == myHost.getId()) {
             System.out.println(myHost.getId() + " " + message.getId());
             System.out.println("Time : "+(System.currentTimeMillis() - timeStamp));
         }
