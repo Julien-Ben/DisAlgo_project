@@ -14,6 +14,8 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
     private final List<Host> hosts;
     private final Host myHost;
 
+    //Limit the number of messages transmitted at the same time on the network
+    //Improvment : better congestion control and move it to perfect link
     private static final int MAX_MESSAGES = 6000;
     private final Semaphore semaphore = new Semaphore(MAX_MESSAGES);
     
