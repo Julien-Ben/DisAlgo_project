@@ -14,7 +14,7 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
     private final List<Host> hosts;
     private final Host myHost;
 
-    private static final int MAX_MESSAGES = 5000;
+    private static final int MAX_MESSAGES = 6000;
     private final Semaphore semaphore = new Semaphore(MAX_MESSAGES);
     
     private final Map<Integer, HashSet<Integer>> causalities;
@@ -51,13 +51,13 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
 
     @Override
     public void broadcast(Message message) {
-//        try {
-//            semaphore.acquire();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//            semaphore.release();
-//            return;
-//        }
+        try {
+            semaphore.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            semaphore.release();
+            return;
+        }
         long[] W = vClockSend.clone();
         W[myRank-1] = lsn;
         lsn++;
@@ -89,9 +89,9 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
                             }
                             pending.remove(p);
                             receiver.deliver(m);
-//                            if (m.getOriginalSender().getId() == myHost.getId()){
-//                                semaphore.release();
-//                            }
+                            if (m.getOriginalSenderId() == myHost.getId()){
+                                semaphore.release();
+                            }
                             cont = true;
                             break;
                         }

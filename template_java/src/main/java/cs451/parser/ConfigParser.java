@@ -23,25 +23,6 @@ public class ConfigParser {
         return true;
     }
 
-    public String getPath() {
-        return filePath;
-    }
-
-
-    public int getNumberOfMessage() {
-        int numMessages = 20000;
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(new File(getPath())));
-            String l = reader.readLine();
-            numMessages = Integer.parseInt(l);
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return numMessages;
-    }
-
-
     public HashMap<Integer, HashSet<Integer>> getCausalities() {
         HashMap<Integer, HashSet<Integer>> causalities = new HashMap<>();
         try {
@@ -65,5 +46,22 @@ public class ConfigParser {
         }
         System.out.println(causalities.toString());
         return causalities;
+    }
+
+    public int getNumberOfMessage() {
+        int numMessages = 20000;
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(new File(getPath())));
+            String l = reader.readLine();
+            numMessages = Integer.parseInt(l);
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return numMessages;
+    }
+
+    public String getPath() {
+        return filePath;
     }
 }
