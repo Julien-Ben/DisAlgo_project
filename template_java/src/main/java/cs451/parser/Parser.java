@@ -3,6 +3,8 @@ package cs451.parser;
 import cs451.Constants;
 import cs451.Host;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class Parser {
@@ -62,6 +64,7 @@ public class Parser {
         if (argsNum == Constants.ARG_LIMIT_CONFIG) {
             configParser = new ConfigParser();
             if (!configParser.populate(args[Constants.CONFIG_VALUE])) {
+                help();
             }
         }
     }
@@ -106,5 +109,13 @@ public class Parser {
     public String config() {
         return configParser.getPath();
     }
+
+    public HashMap<Integer, HashSet<Integer>> getCausalities() {
+        return configParser.getCausalities();
+    };
+
+    public int getMessages() {
+        return configParser.getNumberOfMessage();
+    };
 
 }

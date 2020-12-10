@@ -4,6 +4,8 @@ import cs451.parser.Parser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -50,29 +52,21 @@ public class Main {
             }
         }
 
-        int messages = 5; //Default number of messages
-
+        int messages = 20; //Default number of messages
+        Map<Integer, HashSet<Integer>> causalities = null;
         // if config is defined; always check before parser.config()
         if (parser.hasConfig()) {
-            System.out.println("Config: " + parser.config());
-            Scanner scanner = null;
-            try {
-                scanner = new Scanner(new File(parser.config()));
-            } catch (FileNotFoundException e) {
-                System.out.println("Impossible to open config file");
-                e.printStackTrace();
-                return;
-            }
-            while(scanner.hasNextInt()) {
-                messages = scanner.nextInt();
-            }
+            messages = parser.getMessages();
+            causalities = parser.getCausalities();
+        } else {
+            System.out.println("No config defined");
         }
-
         System.out.println("My PID is " + pid + ".");
         System.out.println("Use 'kill -SIGINT " + pid + " ' or 'kill -SIGTERM " + pid + " ' to stop processing packets.");
         System.out.println("My id is " + parser.myId() + ".");
 
-        process = new Process(parser.hosts(), parser.output(), myHost, coordinator, messages);
+        process = new Process(parser.hosts(), parser.output(), myHost, coordinator, messages,
+                causalities);
         process.run();
 
         while (true) {

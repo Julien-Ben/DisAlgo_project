@@ -2,12 +2,7 @@ package cs451;
 
 import cs451.parser.Parser;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class MainTest {
     static List<Process> processes = new ArrayList<>();
@@ -49,27 +44,20 @@ public class MainTest {
 
         }
 
-        int messages = 8; //Default number of messages
-
+        int messages = 10000; //Default number of messages
+        Map<Integer, HashSet<Integer>> causalities = null;
         // if config is defined; always check before parser.config()
         if (parser.hasConfig()) {
-            System.out.println("Config: " + parser.config());
-            Scanner scanner = null;
-            try {
-                scanner = new Scanner(new File(parser.config()));
-            } catch (FileNotFoundException e) {
-                System.out.println("Impossible to open config file");
-                e.printStackTrace();
-                return;
-            }
-            while(scanner.hasNextInt()) {
-                messages = scanner.nextInt();
-            }
+            messages = parser.getMessages();
+            causalities = parser.getCausalities();
+        } else {
+            System.out.println("No config defined");
         }
-        int processNbr = 4;
+
+        int processNbr = 8;
 
         for (Host host: parser.hosts()) {
-            Process process = new Process(parser.hosts(), parser.output()+host.getId(), host, coordinators.get(host.getId()-1), messages);
+            Process process = new Process(parser.hosts(), parser.output()+host.getId()+".txt", host, coordinators.get(host.getId()-1), messages, causalities);
             Thread procThread = new Thread(process);
             processes.add(process);
             procThread.start();

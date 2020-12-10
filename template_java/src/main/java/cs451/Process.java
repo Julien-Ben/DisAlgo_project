@@ -7,9 +7,7 @@ import cs451.messages.Message;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implements a basic process for this project. Contains the main information (hosts, port...)
@@ -22,14 +20,15 @@ public class Process implements Receiver, Runnable {
     private final List<Host> hosts;
     private final int messages;
     private StringBuilder stringBuilder;
-    private static final int STR_BUILDER_BATCH = 20;
+    private static final int STR_BUILDER_BATCH = 16384;
     private FileWriter fileWriter;
     private Set<Host> finishedHosts;
     private long timeStamp = 0;
 
-    public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator, int messages) {
+    public Process(List<Host> hosts, String outputFile, Host myHost, Coordinator coordinator, int messages,
+                   Map<Integer, HashSet<Integer>> causalities) {
         this.outputFile = outputFile;
-        broadcaster = new LocalizedCausalBroadcast(this, hosts, myHost);
+        broadcaster = new LocalizedCausalBroadcast(this, hosts, myHost, causalities);
         this.coordinator = coordinator;
         this.myHost = myHost;
         this.hosts = hosts;
@@ -69,6 +68,10 @@ public class Process implements Receiver, Runnable {
     @Override
     public void deliver(Message message) {
         strBuilderAppend("d " + message.getContent());
+        if (message.getId() % 2000 == 0 && message.getOriginalSender().getId() == myHost.getId()) {
+            System.out.println(myHost.getId() + " " + message.getId());
+            System.out.println("Time : "+(System.currentTimeMillis() - timeStamp));
+        }
         if (message.getId() == messages) {
             finishedHosts.add(message.getOriginalSender());
             if (finishedHosts.size() == hosts.size()) {
@@ -82,7 +85,7 @@ public class Process implements Receiver, Runnable {
     public void strBuilderAppend(String s) {
         stringBuilder.append(s);
         stringBuilder.append(System.lineSeparator());
-        if (stringBuilder.length() > STR_BUILDER_BATCH - 1) {
+        if (stringBuilder.length() > STR_BUILDER_BATCH - 15) {
             flushStrBuilder();
         }
     }
