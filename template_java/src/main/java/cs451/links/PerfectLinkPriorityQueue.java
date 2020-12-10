@@ -12,6 +12,7 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
     private final FairLossLink fairLossLink;
     private final PriorityBlockingQueue<SendQueueElement> sendQueue;
     private final Set<Message> receivedMessages;
+    private final Set<Message> sentMessages;
     private final Receiver receiver;
     private final Host myHost;
     private final Map<Host, Long> hostToTimeout;
@@ -22,6 +23,7 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
         fairLossLink = new FairLossLink(this, myHost.getPort());
         sendQueue = new PriorityBlockingQueue<>();
         receivedMessages = new HashSet<>();
+        sentMessages = new HashSet<>();
         hostToTimeout = new HashMap<>();
         Thread fairLossThread = new Thread(fairLossLink);
         fairLossThread.start();
@@ -32,17 +34,19 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
         while (true) {
             try {
                 SendQueueElement elem = sendQueue.take();
-                long deltaTime = elem.getNextTimeStamp() - System.currentTimeMillis();
-                if (deltaTime > 0) {
-                    sleep(deltaTime);
+                if (!sentMessages.contains(elem.getMessagePair().y)) {
+                    long deltaTime = elem.getNextTimeStamp() - System.currentTimeMillis();
+                    if (deltaTime > 0) {
+                        sleep(deltaTime);
+                    }
+                    fairLossLink.send(elem.getMessagePair().y, elem.getMessagePair().x);
+                    if (elem.firstTransmission) {
+                        elem.firstTransmission = false;
+                    } else {
+                        updateTimeStamp(elem, true);
+                    }
+                    sendQueue.put(elem);
                 }
-                fairLossLink.send(elem.getMessagePair().y, elem.getMessagePair().x);
-                if (elem.firstTransmission) {
-                    elem.firstTransmission = false;
-                } else {
-                    updateTimeStamp(elem, true);
-                }
-                sendQueue.put(elem);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -53,8 +57,10 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
         //Updating retransmission delay for host
         Host messageHost = elem.getMessagePair().y.getSender();
         long currentDelay = hostToTimeout.computeIfAbsent(messageHost, x -> SendQueueElement.INITIAL_TIMEOUT);
-        double increaserate = 0.2 * (1 - currentDelay/1000);
-        double decreaserate = 0.2 *  (1 - (10/currentDelay));
+        int MAXDELAY = 1000;
+        int MINDELAY = 10;
+        double increaserate = 0.2 * (1 - currentDelay/MAXDELAY);
+        double decreaserate = 0.2 *  (1 - (10/MINDELAY));
         long newDelay = (long) (currentDelay * (inc ? 1 + increaserate : 1 - decreaserate));
         hostToTimeout.put(messageHost, newDelay);
         elem.updateTimeStamp(newDelay);
@@ -82,7 +88,8 @@ public class PerfectLinkPriorityQueue implements Runnable, Receiver {
         if (message.getContent().equals("ack")) {
             Pair comparePair = new Pair<>(message.getSender(), new Message(message, myHost));
             SendQueueElement elem = new SendQueueElement(comparePair);
-            sendQueue.remove(elem);
+            //sendQueue.remove(elem);
+            sentMessages.add(message);
             updateTimeStamp(elem, false);
         } else if (receivedMessages.contains(message)){
             //Do nothing

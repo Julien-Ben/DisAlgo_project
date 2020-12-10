@@ -22,6 +22,7 @@ public class PerfectLink implements Runnable, Receiver {
         receivedMessages = new HashSet<>();
         Thread fairLossThread = new Thread(fairLossLink);
         fairLossThread.start();
+        throw new IllegalArgumentException("Don't use me");
     }
 
     @Override

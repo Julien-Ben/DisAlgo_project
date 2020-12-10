@@ -11,7 +11,6 @@ import java.util.Arrays;
  * Implements FairLossLink with UDP.
  */
 public class FairLossLink implements Runnable{
-    private byte[] sendBuffer;
     private byte[] receiveBuffer;
     private DatagramSocket socket;
     private final int port;
@@ -20,7 +19,6 @@ public class FairLossLink implements Runnable{
 
     public FairLossLink(Receiver receiver, int port) {
         this.receiver = receiver;
-        this.sendBuffer = new byte[BUFFER_SIZE];
         this.receiveBuffer = new byte[BUFFER_SIZE];
         this.port = port;
         try {
@@ -32,20 +30,16 @@ public class FairLossLink implements Runnable{
     }
 
     public void send(Message message, Host dest) {
-        try {
-            sendBuffer = (Arrays.copyOf(message.serialize(), BUFFER_SIZE));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         DatagramPacket myPacket;
         try {
+            byte[] sendBuffer = (Arrays.copyOf(message.serialize(), BUFFER_SIZE));
             myPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(dest.getIp()), dest.getPort());
             socket.send(myPacket);
         } catch (UnknownHostException e){
             System.out.println("Unresolvable IP address.");
             e.printStackTrace();
         } catch (IOException e) {
-            System.out.println("An error occurred when sending packet.");
+            System.out.println("An error occurred when sending or serializing packet.");
             e.printStackTrace();
         } catch (Exception e) {
             System.out.println("An error occurred");

@@ -6,6 +6,7 @@ import cs451.messages.Message;
 import cs451.tools.Pair;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
     private final UniformReliableBroadcast urb;
@@ -13,6 +14,9 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
     private final List<Host> hosts;
     private final Host myHost;
 
+    private static final int MAX_MESSAGES = 5000;
+    private final Semaphore semaphore = new Semaphore(MAX_MESSAGES);
+    
     private final Map<Integer, HashSet<Integer>> causalities;
     //Map (OriginalSenderID, SeqNb) -> Message
     private final Map<Pair<Integer, Long>, Message> pending;
@@ -47,6 +51,13 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
 
     @Override
     public void broadcast(Message message) {
+        try {
+            semaphore.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            semaphore.release();
+            return;
+        }
         long[] W = vClockSend.clone();
         W[myRank-1] = lsn;
         lsn++;
@@ -62,7 +73,7 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
         else {
             vClockDeliver[originalSenderId-1]++;
             receiver.deliver(message);
-            boolean cont = false;
+            boolean cont;
             do {
                 cont = false;
                 //for (Host host : hosts) {
@@ -78,6 +89,9 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
                             }
                             pending.remove(p);
                             receiver.deliver(m);
+                            if (m.getOriginalSender().getId() == myHost.getId()){
+                                semaphore.release();
+                            }
                             cont = true;
                             break;
                         }
