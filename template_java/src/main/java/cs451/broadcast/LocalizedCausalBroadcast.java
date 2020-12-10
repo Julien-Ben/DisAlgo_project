@@ -22,6 +22,7 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
     private final Map<Integer, HashSet<Integer>> causalities;
     //Map (OriginalSenderID, SeqNb) -> Message
     private final Map<Pair<Integer, Long>, Message> pending;
+    private final Map<Integer, PriorityQueue<Message>> pendingQueues;
     private final long[] vClockDeliver;
     private final long[] vClockSend;
     private long lsn;
@@ -39,6 +40,10 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
             this.causalities = Map.copyOf(causalities);
         }
         this.pending = new HashMap<>();
+        this.pendingQueues = new HashMap<>();
+        for (Host host : hosts) {
+            pendingQueues.put(host.getId(), new PriorityQueue<Message>((elem1, elem2) -> Long.compare(elem1.getId(), elem2.getId())));
+        }
         vClockDeliver = new long[hosts.size()];
         vClockSend = new long[hosts.size()];
         myRank = myHost.getId();
@@ -70,36 +75,35 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
     public void deliver(Message message) {
         int originalSenderId = message.getOriginalSenderId();
         if (!canDeliver(message)) {
-            pending.put(new Pair<>(originalSenderId, message.getId()), message);
+            pendingQueues.get(message.getOriginalSenderId()).add(message);
         }
         else {
             vClockDeliver[originalSenderId-1]++;
             receiver.deliver(message);
-            boolean cont;
+            boolean contGlobal;
             do {
-                cont = false;
-                //for (Host host : hosts) {
-                    Iterator<Map.Entry<Pair<Integer, Long>,Message>> it = pending.entrySet().iterator();
+                contGlobal = false;
+                for (Host host : hosts) {
+                    Iterator<Message> it = pendingQueues.get(host.getId()).iterator();
                     while (it.hasNext()) {
-                        Map.Entry<Pair<Integer, Long>,Message> pairMessageEntry = it.next();
-                        Message m = pairMessageEntry.getValue();
-                        Pair<Integer, Long> p = pairMessageEntry.getKey();
+                        Message m = it.next();
                         if (canDeliver(m)) {
-                            vClockDeliver[p.x-1]++;
+                            vClockDeliver[host.getId()-1]++;
                             if (causalities.get(myHost.getId()).contains(m.getOriginalSenderId())) {
-                                vClockSend[p.x-1]++;
+                                vClockSend[host.getId()-1]++;
                             }
-                            pending.remove(p);
+                            it.remove();
                             receiver.deliver(m);
                             if (m.getOriginalSenderId() == myHost.getId()){
                                 semaphore.release();
                             }
-                            cont = true;
+                            contGlobal = true;
+                        } else {
                             break;
                         }
                     }
-                //}
-            } while (cont);
+                }
+            } while (contGlobal);
         }
     }
 
