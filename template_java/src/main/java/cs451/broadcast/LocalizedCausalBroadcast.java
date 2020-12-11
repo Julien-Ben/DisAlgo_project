@@ -41,10 +41,14 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
             for (Host host : hosts) {
                 causalities.put(host.getId(), new HashSet<>());
             }
-            causalities.get(myHost.getId()).add(myHost.getId());
         } else {
             this.causalities = Map.copyOf(causalities);
         }
+        //Quick and dirty fix
+        if (!causalities.containsKey(myHost.getId())) {
+            causalities.put(myHost.getId(), new HashSet<>());
+        }
+        causalities.get(myHost.getId()).add(myHost.getId());
         this.pending = new HashMap<>();
         this.pendingQueues = new HashMap<>();
         for (Host host : hosts) {
