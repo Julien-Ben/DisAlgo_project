@@ -37,7 +37,11 @@ public class LocalizedCausalBroadcast implements Broadcaster, Receiver {
         this.myHost = myHost;
         this.semaphore = new Semaphore(MAX_MESSAGES/hosts.size());
         if (causalities==null) {
-            this.causalities = null;
+            this.causalities = new HashMap<>();
+            for (Host host : hosts) {
+                causalities.put(host.getId(), new HashSet<>());
+            }
+            causalities.get(myHost.getId()).add(myHost.getId());
         } else {
             this.causalities = Map.copyOf(causalities);
         }
